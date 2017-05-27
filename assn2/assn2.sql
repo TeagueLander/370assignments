@@ -25,3 +25,9 @@ SELECT cs.celeb1, cs.celeb2, cs.movie
 	JOIN Relationships r
 		ON cs.celeb1 = r.celeb1
 		AND cs.celeb2 = r.celeb2;
+		
+SELECT celeb, COUNT(movie)
+	FROM StarredIn
+	GROUP BY celeb
+	HAVING COUNT(movie) >= 10
+	ORDER BY COUNT(movie) DESC;

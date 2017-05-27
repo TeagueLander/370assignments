@@ -1,3 +1,4 @@
+-- VIEWS --
 CREATE OR REPLACE VIEW vCostars AS
 	SELECT DISTINCT si1.movie, si1.celeb celeb1, si2.celeb celeb2
 	FROM StarredIn si1
@@ -10,6 +11,13 @@ CREATE OR REPLACE VIEW vCelebMovieCounts AS
 	LEFT JOIN StarredIn si ON c.name = si.celeb
 	GROUP BY c.name;
 	
+CREATE OR REPLACE VIEW vCelebAlbumCounts AS
+	SELECT c.name celeb, COUNT(album) albumCount
+	FROM Celebs c
+	LEFT JOIN Releases r ON c.name = r.celeb
+	GROUP BY c.name;
+	
+-- SELECT STATEMENTS --
 SELECT movie
 	FROM vCostars
 	WHERE celeb1 = 'Tom Cruise'
@@ -44,3 +52,22 @@ SELECT e.celeb1, e.celeb2, cmc1.movieCount, cmc2.movieCount
 	JOIN vCelebMovieCounts cmc1 ON e.celeb1 = cmc1.celeb
 	JOIN vCelebMovieCounts cmc2 ON e.celeb2 = cmc2.celeb;
 	
+SELECT celeb, albumCount
+	FROM vCelebAlbumCounts
+	WHERE albumCount >= 2
+	ORDER BY albumCount DESC;
+	
+-- This is somewhat ambiguous, I'm assuming 'some' means more than one is allowed
+SELECT celeb
+	FROM vCelebAlbumCounts
+	NATURAL JOIN vCelebMovieCounts
+	WHERE movieCount > 0
+	AND albumCount > 0;
+	
+SELECT celeb, movieCount number_of_movies, albumCount number_of_albums
+	FROM vCelebAlbumCounts
+	NATURAL JOIN vCelebMovieCounts
+	WHERE movieCount > 0
+	AND albumCount > 0;
+	
+

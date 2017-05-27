@@ -4,6 +4,12 @@ CREATE OR REPLACE VIEW vCostars AS
 	JOIN StarredIn si2 ON si1.movie = si2.movie
 	WHERE si1.celeb <> si2.celeb;
 
+CREATE OR REPLACE VIEW vCelebMovieCounts AS
+	SELECT c.name, COUNT(movie) movieCount
+	FROM Celebs c
+	LEFT JOIN StarredIn si ON c.name = si.celeb
+	GROUP BY c.name;
+	
 SELECT movie
 	FROM vCostars
 	WHERE celeb1 = 'Tom Cruise'
@@ -13,21 +19,24 @@ SELECT UNIQUE(celeb2) celeb
 	FROM vCostars
 	WHERE celeb1 = 'Tom Cruise';
 	
-SELECT cs.celeb2 costar, cs.movie
-	FROM vCostars cs
-	JOIN Relationships r
-		ON cs.celeb1 = r.celeb1
-		AND cs.celeb2 = r.celeb2 
-	WHERE cs.celeb1 = 'Tom Cruise';
+SELECT celeb2 costar, movie
+	FROM vCostars
+	NATURAL JOIN Relationships
+	WHERE celeb1 = 'Tom Cruise';
 	
-SELECT cs.celeb1, cs.celeb2, cs.movie
-	FROM vCostars cs
-	JOIN Relationships r
-		ON cs.celeb1 = r.celeb1
-		AND cs.celeb2 = r.celeb2;
+SELECT celeb1, celeb2, movie
+	FROM vCostars
+	NATURAL JOIN Relationships;
 		
 SELECT celeb, COUNT(movie)
 	FROM StarredIn
 	GROUP BY celeb
 	HAVING COUNT(movie) >= 10
 	ORDER BY COUNT(movie) DESC;
+	
+SELECT r1.celeb2 celeb1, r2.celeb2 celeb2, r1.celeb1 celeb3
+	FROM Relationships r1
+	JOIN Relationships r2 ON r1.celeb1 = r2.celeb1
+	WHERE r1.celeb2 <> r2.celeb2;
+	
+	

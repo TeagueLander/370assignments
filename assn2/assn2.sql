@@ -20,7 +20,7 @@ SELECT cs.celeb2 costar, cs.movie
 		AND cs.celeb2 = r.celeb2 
 	WHERE cs.celeb1 = 'Tom Cruise';
 	
-SELECT cs.celeb2 costar, cs.movie
+SELECT cs.celeb1, cs.celeb2, cs.movie
 	FROM vCostars cs
 	JOIN Relationships r
 		ON cs.celeb1 = r.celeb1

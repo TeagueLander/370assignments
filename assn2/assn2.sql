@@ -5,7 +5,7 @@ CREATE OR REPLACE VIEW vCostars AS
 	WHERE si1.celeb <> si2.celeb;
 
 CREATE OR REPLACE VIEW vCelebMovieCounts AS
-	SELECT c.name, COUNT(movie) movieCount
+	SELECT c.name celeb, COUNT(movie) movieCount
 	FROM Celebs c
 	LEFT JOIN StarredIn si ON c.name = si.celeb
 	GROUP BY c.name;
@@ -39,4 +39,8 @@ SELECT r1.celeb2 celeb1, r2.celeb2 celeb2, r1.celeb1 celeb3
 	JOIN Relationships r2 ON r1.celeb1 = r2.celeb1
 	WHERE r1.celeb2 <> r2.celeb2;
 	
+SELECT e.celeb1, e.celeb2, cmc1.movieCount, cmc2.movieCount
+	FROM Enemies e
+	JOIN vCelebMovieCounts cmc1 ON e.celeb1 = cmc1.celeb
+	JOIN vCelebMovieCounts cmc2 ON e.celeb2 = cmc2.celeb;
 	

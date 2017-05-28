@@ -1,0 +1,1795 @@
+\documentclass{article}
+
+% PACKAGES
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} \graphicspath{ {img/} }
+\usepackage{geometry} \geometry{letterpaper, portrait, margin=1in}
+\usepackage{listings}
+
+\title{CSC 370 Assignment 2}
+\author{ Teague Lander }
+\date{May 29 2017}
+
+\begin{document}
+
+\maketitle
+
+\section*{Views}
+    To help with this question, 3 views were written:
+    \\
+    \begin{verbatim}
+CREATE OR REPLACE VIEW vCostars AS
+    SELECT DISTINCT si1.movie, si1.celeb celeb1, si2.celeb celeb2
+    FROM StarredIn si1
+    JOIN StarredIn si2 ON si1.movie = si2.movie
+    WHERE si1.celeb <> si2.celeb;
+    
+CREATE OR REPLACE VIEW vCelebMovieCounts AS
+    SELECT c.name celeb, COUNT(movie) movieCount
+    FROM Celebs c
+    LEFT JOIN StarredIn si ON c.name = si.celeb
+    GROUP BY c.name;
+	
+CREATE OR REPLACE VIEW vCelebAlbumCounts AS
+    SELECT c.name celeb, COUNT(album) albumCount
+    FROM Celebs c
+    LEFT JOIN Releases r ON c.name = r.celeb
+    GROUP BY c.name;
+    \end{verbatim}
+    
+\section*{Queries}
+    
+    \subsubsection*{Find the movies where both Tom Cruise and Penelope Cruz have starred together:}
+        \begin{verbatim}
+SELECT movie
+    FROM vCostars
+    WHERE celeb1 = 'Tom Cruise'
+    AND celeb2 = 'Penélope Cruz';\end{verbatim}
+    
+        \begin{verbatim}
+MOVIE       |
+------------|
+Vanilla Sky |
+        \end{verbatim}
+        
+    \subsubsection*{Find all the co-stars of Nicolas Cage:}
+        \begin{verbatim}
+SELECT UNIQUE(celeb2) celeb
+    FROM vCostars
+    WHERE celeb1 = 'Tom Cruise';\end{verbatim}
+    
+        \begin{verbatim}
+CELEB              |
+-------------------|
+Nicole Kidman      |
+Kelly Preston      |
+Cameron Diaz       |
+Billy Crudup       |
+Katie Couric       |
+Kenneth Branagh    |
+Matt Dillon        |
+Britney Spears     |
+Brad Pitt          |
+Christian Slater   |
+Penélope Cruz      |
+Thandie Newton     |
+Gina Gershon       |
+Beyoncé            |
+Ben Stiller        |
+Nicolas Cage       |
+Jeanne Tripplehorn |
+Gwyneth Paltrow    |
+Kirsten Dunst      |
+        \end{verbatim}
+        
+    \subsubsection*{Find the movies where Tom Cruise co-starred with a celebrity he is (or has been) in
+a relationship with:}
+        \begin{verbatim}
+SELECT celeb2 costar, movie
+    FROM vCostars
+    NATURAL JOIN Relationships
+    WHERE celeb1 = 'Tom Cruise';\end{verbatim}
+    
+        \begin{verbatim}
+COSTAR        |MOVIE       |
+--------------|------------|
+Penélope Cruz |Vanilla Sky |
+        \end{verbatim}
+        
+        
+    
+    \subsubsection*{ Find the movies where a celebrity co-starred with another celebrity he/she is (or has
+been) in relationship with:}
+        \begin{verbatim}
+SELECT celeb1, celeb2, movie
+    FROM vCostars
+    NATURAL JOIN Relationships;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB1               |CELEB2               |MOVIE                                          |
+---------------------|---------------------|-----------------------------------------------|
+Winona Ryder         |Johnny Depp          |Edward Scissorhands                            |
+Juliette Lewis       |Brad Pitt            |Kalifornia                                     |
+Helena Bonham Carter |Kenneth Branagh      |The Theory of Flight                           |
+Jennifer Lopez       |Ben Affleck          |Jersey Girl                                    |
+Jennifer Lopez       |Ben Affleck          |Gigli                                          |
+Woody Allen          |Soon-Yi Previn       |Hannah and Her Sisters                         |
+Claire Danes         |Hugh Dancy           |Evening                                        |
+Janeane Garofalo     |Ben Stiller          |Mystery Men                                    |
+Vanessa Anne Hudgens |Zac Efron            |High School Musical 2: Sing It All Or Nothing! |
+Warren Beatty        |Madonna              |Dick Tracy                                     |
+Claire Danes         |Billy Crudup         |Stage Beauty                                   |
+Warren Beatty        |Julie Christie       |Heaven Can Wait                                |
+Diane Keaton         |Woody Allen          |Play It Again, Sam                             |
+Mia Farrow           |Woody Allen          |Crimes and Misdemeanors                        |
+Brad Pitt            |Jill Schoelen        |Cutting Class                                  |
+Woody Allen          |Mia Farrow           |Husbands and Wives                             |
+Stuart Townsend      |Charlize Theron      |Trapped                                        |
+Kick Gurry           |Christina Ricci      |Speed Racer                                    |
+Owen Wilson          |Kate Hudson          |You, Me and Dupree                             |
+Warren Beatty        |Faye Dunaway         |Bonnie and Clyde                               |
+Jenny Shimizu        |Angelina Jolie       |Foxfire                                        |
+Hugh Laurie          |Emma Thompson        |Sense and Sensibility                          |
+Claire Danes         |Billy Crudup         |Princess Mononoke                              |
+Diane Keaton         |Woody Allen          |Love and Death                                 |
+Charlize Theron      |Stuart Townsend      |Trapped                                        |
+Woody Allen          |Mia Farrow           |Shadows and Fog                                |
+Woody Allen          |Mia Farrow           |Hannah and Her Sisters                         |
+Cameron Diaz         |Justin Timberlake    |Shrek the Third                                |
+Gwyneth Paltrow      |Brad Pitt            |Seven                                          |
+Kate Hudson          |Owen Wilson          |You, Me and Dupree                             |
+Keira Knightley      |Rupert Friend        |Pride & Prejudice                              |
+Sarah Jessica Parker |Robert Downey Jr.    |Firstborn                                      |
+Minnie Driver        |Matt Damon           |Good Will Hunting                              |
+Zac Efron            |Vanessa Anne Hudgens |Haunted High School Musical                    |
+Christina Ricci      |Adam Goldberg        |All Over the Guy                               |
+Emma Thompson        |Hugh Laurie          |Peter's Friends                                |
+Ben Affleck          |Jennifer Lopez       |Jersey Girl                                    |
+Paris Hilton         |Rick Salomon         |1 Night in Paris                               |
+Janeane Garofalo     |Ben Stiller          |Reality Bites                                  |
+Gwyneth Paltrow      |Luke Wilson          |The Royal Tenenbaums                           |
+Hugh Laurie          |Emma Thompson        |Peter's Friends                                |
+Justin Timberlake    |Britney Spears       |Longshot                                       |
+Mia Farrow           |Woody Allen          |Shadows and Fog                                |
+Soon-Yi Previn       |Woody Allen          |Hannah and Her Sisters                         |
+Woody Allen          |Mia Farrow           |New York Stories                               |
+Woody Allen          |Mia Farrow           |A Midsummer Night's Sex Comedy                 |
+Juliette Lewis       |Brad Pitt            |Too Young to Die?                              |
+Jill Schoelen        |Brad Pitt            |Cutting Class                                  |
+Penélope Cruz        |Tom Cruise           |Vanilla Sky                                    |
+Brad Pitt            |Gwyneth Paltrow      |Seven                                          |
+Emma Thompson        |Hugh Laurie          |Sense and Sensibility                          |
+Jeanne Tripplehorn   |Ben Stiller          |Reality Bites                                  |
+Vanessa Anne Hudgens |Zac Efron            |Haunted High School Musical                    |
+Christian Slater     |Winona Ryder         |Heathers                                       |
+Julie Christie       |Warren Beatty        |Shampoo                                        |
+Julie Christie       |Warren Beatty        |McCabe & Mrs. Miller                           |
+Mia Farrow           |Woody Allen          |Broadway Danny Rose                            |
+Mia Farrow           |Woody Allen          |A Midsummer Night's Sex Comedy                 |
+Diane Keaton         |Woody Allen          |Men of Crisis: The Harvey Wallinger Story      |
+Mia Farrow           |Woody Allen          |Husbands and Wives                             |
+Woody Allen          |Mia Farrow           |Broadway Danny Rose                            |
+Woody Allen          |Mia Farrow           |Zelig                                          |
+Joaquin Phoenix      |Liv Tyler            |Inventing the Abbotts                          |
+Angelina Jolie       |Jenny Shimizu        |Foxfire                                        |
+Kenneth Branagh      |Helena Bonham Carter |The Theory of Flight                           |
+Ben Stiller          |Janeane Garofalo     |The Cable Guy                                  |
+Luke Wilson          |Gwyneth Paltrow      |The Royal Tenenbaums                           |
+Ben Affleck          |Gwyneth Paltrow      |Shakespeare in Love                            |
+Rupert Friend        |Keira Knightley      |Pride & Prejudice                              |
+Liv Tyler            |Joaquin Phoenix      |Inventing the Abbotts                          |
+Zac Efron            |Vanessa Anne Hudgens |High School Musical 2: Sing It All Or Nothing! |
+Woody Allen          |Diane Keaton         |Play It Again, Sam                             |
+Warren Beatty        |Isabelle Adjani      |Ishtar                                         |
+Gwyneth Paltrow      |Ben Affleck          |Bounce                                         |
+Justin Timberlake    |Cameron Diaz         |Shrek the Third                                |
+Janeane Garofalo     |Ben Stiller          |The Independent                                |
+Tom Cruise           |Penélope Cruz        |Vanilla Sky                                    |
+Elizabeth Daily      |Nicolas Cage         |Valley Girl                                    |
+Mia Farrow           |Woody Allen          |Hannah and Her Sisters                         |
+Mia Farrow           |Woody Allen          |Zelig                                          |
+Britney Spears       |Justin Timberlake    |Longshot                                       |
+Stuart Townsend      |Charlize Theron      |Head in the Clouds                             |
+Adam Goldberg        |Christina Ricci      |All Over the Guy                               |
+Kenneth Branagh      |Helena Bonham Carter |Hamlet                                         |
+Winona Ryder         |Christian Slater     |Heathers                                       |
+Woody Allen          |Diane Keaton         |Love and Death                                 |
+Gwyneth Paltrow      |Ben Affleck          |Shakespeare in Love                            |
+Cameron Diaz         |Matt Dillon          |There's Something About Mary                   |
+Brad Pitt            |Juliette Lewis       |Kalifornia                                     |
+Billy Crudup         |Claire Danes         |Stage Beauty                                   |
+Ben Stiller          |Jeanne Tripplehorn   |Reality Bites                                  |
+Isabelle Adjani      |Warren Beatty        |Ishtar                                         |
+Madonna              |Warren Beatty        |Dick Tracy                                     |
+Faye Dunaway         |Warren Beatty        |Bonnie and Clyde                               |
+Warren Beatty        |Julie Christie       |Shampoo                                        |
+Jake Gyllenhaal      |Reese Witherspoon    |Rendition                                      |
+Reese Witherspoon    |Jake Gyllenhaal      |Rendition                                      |
+Helena Bonham Carter |Kenneth Branagh      |Mary Shelley's Frankenstein                    |
+Ben Stiller          |Janeane Garofalo     |The Independent                                |
+Ben Stiller          |Janeane Garofalo     |Reality Bites                                  |
+Ben Stiller          |Janeane Garofalo     |Mystery Men                                    |
+Ben Affleck          |Gwyneth Paltrow      |Bounce                                         |
+Ben Affleck          |Jennifer Lopez       |Gigli                                          |
+Billy Crudup         |Claire Danes         |Princess Mononoke                              |
+Johnny Depp          |Winona Ryder         |Edward Scissorhands                            |
+Warren Beatty        |Julie Christie       |McCabe & Mrs. Miller                           |
+Charlize Theron      |Stuart Townsend      |Head in the Clouds                             |
+Woody Allen          |Mia Farrow           |Crimes and Misdemeanors                        |
+Christina Ricci      |Kick Gurry           |Speed Racer                                    |
+Kenneth Branagh      |Helena Bonham Carter |Mary Shelley's Frankenstein                    |
+Helena Bonham Carter |Kenneth Branagh      |Hamlet                                         |
+Jay-Z                |Beyoncé              |Fade to Black                                  |
+Nicolas Cage         |Elizabeth Daily      |Valley Girl                                    |
+Zac Efron            |Vanessa Anne Hudgens |High School Musical                            |
+Vince Vaughn         |Jennifer Aniston     |The Break-Up                                   |
+Woody Allen          |Diane Keaton         |Men of Crisis: The Harvey Wallinger Story      |
+Rick Salomon         |Paris Hilton         |1 Night in Paris                               |
+Matt Damon           |Minnie Driver        |Good Will Hunting                              |
+Matt Dillon          |Cameron Diaz         |There's Something About Mary                   |
+Janeane Garofalo     |Ben Stiller          |The Cable Guy                                  |
+Robert Downey Jr.    |Sarah Jessica Parker |Firstborn                                      |
+Brad Pitt            |Juliette Lewis       |Too Young to Die?                              |
+Vanessa Anne Hudgens |Zac Efron            |High School Musical                            |
+Hugh Dancy           |Claire Danes         |Evening                                        |
+Julie Christie       |Warren Beatty        |Heaven Can Wait                                |
+Mia Farrow           |Woody Allen          |New York Stories                               |
+Jennifer Aniston     |Vince Vaughn         |The Break-Up                                   |
+Beyoncé              |Jay-Z                |Fade to Black                                  |
+        \end{verbatim}
+        
+    \subsubsection*{Find how many movies each celebrity has starred in. Order the results by the number
+of movies (in descending order). Show only the celebrities who have starred in at
+least 10 movies:}
+        \begin{verbatim}
+SELECT celeb, COUNT(movie)
+    FROM StarredIn
+    GROUP BY celeb
+    HAVING COUNT(movie) >= 10
+    ORDER BY COUNT(movie) DESC;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB                |COUNT(MOVIE) |
+---------------------|-------------|
+Charlie Sheen        |58           |
+Ben Stiller          |55           |
+Bruce Willis         |54           |
+Nicolas Cage         |53           |
+Nicole Kidman        |49           |
+Robert Downey Jr.    |46           |
+John Cusack          |45           |
+Faye Dunaway         |44           |
+Catherine Deneuve    |44           |
+Christian Slater     |44           |
+Gwyneth Paltrow      |42           |
+Billy Zane           |41           |
+Matt Damon           |41           |
+Brad Pitt            |39           |
+Frank Sinatra        |39           |
+Johnny Depp          |38           |
+Jane Fonda           |36           |
+Woody Allen          |36           |
+Matt Dillon          |35           |
+Ben Affleck          |34           |
+Uma Thurman          |34           |
+Christina Ricci      |33           |
+Mia Farrow           |33           |
+Janeane Garofalo     |33           |
+Tom Cruise           |33           |
+Joan Collins         |32           |
+Winona Ryder         |32           |
+Angelina Jolie       |32           |
+Sherilyn Fenn        |31           |
+Kirsten Dunst        |31           |
+Juliette Lewis       |31           |
+Amanda Peet          |31           |
+Marilyn Monroe       |30           |
+Cameron Diaz         |30           |
+Halle Berry          |29           |
+Alyssa Milano        |29           |
+Helena Bonham Carter |29           |
+Candice Bergen       |28           |
+Julie Christie       |28           |
+Kenneth Branagh      |28           |
+Sarah Jessica Parker |28           |
+Katherine Heigl      |27           |
+Jennifer Love Hewitt |27           |
+Reese Witherspoon    |27           |
+Kelly Preston        |26           |
+Vince Vaughn         |26           |
+Elizabeth Daily      |26           |
+Charlize Theron      |26           |
+Emma Thompson        |26           |
+Mary-Louise Parker   |25           |
+Claire Danes         |24           |
+Natalie Portman      |24           |
+Jennifer Lopez       |24           |
+Gina Gershon         |24           |
+Diane Keaton         |24           |
+Joaquin Phoenix      |24           |
+Owen Wilson          |23           |
+Minnie Driver        |22           |
+Jared Leto           |22           |
+Liv Tyler            |22           |
+Leonardo DiCaprio    |22           |
+Warren Beatty        |21           |
+David Duchovny       |20           |
+Madonna              |20           |
+Billy Crudup         |18           |
+Eva Mendes           |18           |
+Hugh Laurie          |18           |
+Isabelle Adjani      |18           |
+Orlando Bloom        |18           |
+Kate Hudson          |17           |
+Jennifer Aniston     |17           |
+Jessica Biel         |17           |
+Lindsay Lohan        |17           |
+Cher                 |16           |
+Jeanne Tripplehorn   |16           |
+Leslie Caron         |16           |
+Keira Knightley      |16           |
+Gregory Smith        |15           |
+Vanessa L. Williams  |15           |
+Mandy Moore          |15           |
+Robin Givens         |15           |
+Thandie Newton       |15           |
+Luke Wilson          |15           |
+Jake Gyllenhaal      |15           |
+Hayden Panettiere    |15           |
+Kristen Bell         |13           |
+Robert Sean Leonard  |12           |
+Jennifer Garner      |12           |
+Adam Goldberg        |12           |
+Mariah Carey         |11           |
+Hugh Dancy           |11           |
+Tate Donovan         |10           |
+Britt Ekland         |10           |
+Angie Everhart       |10           |
+Michael Vartan       |10           |
+Justin Timberlake    |10           |
+Paris Hilton         |10           |
+Pamela Anderson      |10           |
+        \end{verbatim}
+    
+    \subsubsection*{Find the celebrities that have been in relationship with the same celebrity:}
+        \begin{verbatim}
+SELECT r1.celeb2 celeb1, r2.celeb2 celeb2, r1.celeb1 celeb3
+    FROM Relationships r1
+    JOIN Relationships r2 ON r1.celeb1 = r2.celeb1
+    WHERE r1.celeb2 <> r2.celeb2;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB1               |CELEB2               |CELEB3               |
+---------------------|---------------------|---------------------|
+Charlize Theron      |Winona Ryder         |Stephan Jenkins      |
+Jeanne Tripplehorn   |Amanda Peet          |Ben Stiller          |
+Janeane Garofalo     |Amanda Peet          |Ben Stiller          |
+Calista Flockhart    |Amanda Peet          |Ben Stiller          |
+Tamara Witmer        |Brooke Burns         |Bruce Willis         |
+Maria Bravo Rosado   |Brooke Burns         |Bruce Willis         |
+Karen McDougal       |Brooke Burns         |Bruce Willis         |
+Emma Heming          |Brooke Burns         |Bruce Willis         |
+Emily Sandberg       |Brooke Burns         |Bruce Willis         |
+Kick Gurry           |Adam Goldberg        |Christina Ricci      |
+Hugh Dancy           |Ben Lee              |Claire Danes         |
+Billy Crudup         |Ben Lee              |Claire Danes         |
+Hugh Dancy           |Billy Crudup         |Claire Danes         |
+Ben Lee              |Billy Crudup         |Claire Danes         |
+Jules Sandeau        |Alfred de Musset     |George Sand          |
+Frédéric Chopin      |Alfred de Musset     |George Sand          |
+Jules Sandeau        |Frédéric Chopin      |George Sand          |
+Alfred de Musset     |Frédéric Chopin      |George Sand          |
+Robert Sean Leonard  |Ben Affleck          |Gwyneth Paltrow      |
+Luke Wilson          |Ben Affleck          |Gwyneth Paltrow      |
+Christopher Heinz    |Ben Affleck          |Gwyneth Paltrow      |
+Brad Pitt            |Ben Affleck          |Gwyneth Paltrow      |
+Robert Sean Leonard  |Brad Pitt            |Gwyneth Paltrow      |
+Luke Wilson          |Brad Pitt            |Gwyneth Paltrow      |
+Christopher Heinz    |Brad Pitt            |Gwyneth Paltrow      |
+Ben Affleck          |Brad Pitt            |Gwyneth Paltrow      |
+Robert Sean Leonard  |Christopher Heinz    |Gwyneth Paltrow      |
+Luke Wilson          |Christopher Heinz    |Gwyneth Paltrow      |
+Brad Pitt            |Christopher Heinz    |Gwyneth Paltrow      |
+Ben Affleck          |Christopher Heinz    |Gwyneth Paltrow      |
+Flavio Briatore      |Anthony Kiedis       |Heidi Klum           |
+Anthony Kiedis       |Flavio Briatore      |Heidi Klum           |
+Robin Givens         |Angie Everhart       |Howard Stern         |
+Vince Vaughn         |Adam Duritz          |Jennifer Aniston     |
+Tate Donovan         |Adam Duritz          |Jennifer Aniston     |
+Paul Sculfor         |Adam Duritz          |Jennifer Aniston     |
+Orlando Bloom        |Adam Duritz          |Jennifer Aniston     |
+John Mayer           |Adam Duritz          |Jennifer Aniston     |
+Sean Combs           |Ben Affleck          |Jennifer Lopez       |
+Minka Kelly          |Jennifer Aniston     |John Mayer           |
+Jessica Simpson      |Jennifer Aniston     |John Mayer           |
+Jennifer Love Hewitt |Jennifer Aniston     |John Mayer           |
+Minka Kelly          |Jennifer Love Hewitt |John Mayer           |
+Jessica Simpson      |Jennifer Love Hewitt |John Mayer           |
+Jennifer Aniston     |Jennifer Love Hewitt |John Mayer           |
+Minka Kelly          |Jessica Simpson      |John Mayer           |
+Jennifer Love Hewitt |Jessica Simpson      |John Mayer           |
+Jennifer Aniston     |Jessica Simpson      |John Mayer           |
+Winona Ryder         |Jennifer Grey        |Johnny Depp          |
+Sherilyn Fenn        |Jennifer Grey        |Johnny Depp          |
+Kate Moss            |Jennifer Grey        |Johnny Depp          |
+Sam Giancana         |Frank Sinatra        |Judith Exner         |
+John F. Kennedy      |Frank Sinatra        |Judith Exner         |
+Sam Giancana         |John F. Kennedy      |Judith Exner         |
+Frank Sinatra        |John F. Kennedy      |Judith Exner         |
+Jessica Biel         |Alyssa Milano        |Justin Timberlake    |
+Jenna Dewan          |Alyssa Milano        |Justin Timberlake    |
+Cameron Diaz         |Alyssa Milano        |Justin Timberlake    |
+Britney Spears       |Alyssa Milano        |Justin Timberlake    |
+Jessica Biel         |Britney Spears       |Justin Timberlake    |
+Jenna Dewan          |Britney Spears       |Justin Timberlake    |
+Cameron Diaz         |Britney Spears       |Justin Timberlake    |
+Alyssa Milano        |Britney Spears       |Justin Timberlake    |
+Jessica Biel         |Cameron Diaz         |Justin Timberlake    |
+Jenna Dewan          |Cameron Diaz         |Justin Timberlake    |
+Britney Spears       |Cameron Diaz         |Justin Timberlake    |
+Alyssa Milano        |Cameron Diaz         |Justin Timberlake    |
+Jessica Biel         |Jenna Dewan          |Justin Timberlake    |
+Cameron Diaz         |Jenna Dewan          |Justin Timberlake    |
+Britney Spears       |Jenna Dewan          |Justin Timberlake    |
+Alyssa Milano        |Jenna Dewan          |Justin Timberlake    |
+Jenna Dewan          |Jessica Biel         |Justin Timberlake    |
+Cameron Diaz         |Jessica Biel         |Justin Timberlake    |
+Britney Spears       |Jessica Biel         |Justin Timberlake    |
+Alyssa Milano        |Jessica Biel         |Justin Timberlake    |
+Peter Doherty        |Billy Zane           |Kate Moss            |
+Mario Sorrenti       |Billy Zane           |Kate Moss            |
+Johnny Depp          |Billy Zane           |Kate Moss            |
+Jefferson Hack       |Billy Zane           |Kate Moss            |
+Jamie Hince          |Billy Zane           |Kate Moss            |
+Peter Doherty        |Jamie Hince          |Kate Moss            |
+Mario Sorrenti       |Jamie Hince          |Kate Moss            |
+Johnny Depp          |Jamie Hince          |Kate Moss            |
+Jefferson Hack       |Jamie Hince          |Kate Moss            |
+Billy Zane           |Jamie Hince          |Kate Moss            |
+Peter Doherty        |Jefferson Hack       |Kate Moss            |
+Mario Sorrenti       |Jefferson Hack       |Kate Moss            |
+Johnny Depp          |Jefferson Hack       |Kate Moss            |
+Jamie Hince          |Jefferson Hack       |Kate Moss            |
+Billy Zane           |Jefferson Hack       |Kate Moss            |
+Peter Doherty        |Johnny Depp          |Kate Moss            |
+Mario Sorrenti       |Johnny Depp          |Kate Moss            |
+Jefferson Hack       |Johnny Depp          |Kate Moss            |
+Jamie Hince          |Johnny Depp          |Kate Moss            |
+Billy Zane           |Johnny Depp          |Kate Moss            |
+Joey Lawrence        |Jason Behr           |Katherine Heigl      |
+Jason Behr           |Joey Lawrence        |Katherine Heigl      |
+Tom Werner           |Carroll Lesesne      |Katie Couric         |
+Jimmy Reyes          |Carroll Lesesne      |Katie Couric         |
+Chris Botti          |Carroll Lesesne      |Katie Couric         |
+Tom Werner           |Chris Botti          |Katie Couric         |
+Jimmy Reyes          |Chris Botti          |Katie Couric         |
+Carroll Lesesne      |Chris Botti          |Katie Couric         |
+Tom Werner           |Jimmy Reyes          |Katie Couric         |
+Chris Botti          |Jimmy Reyes          |Katie Couric         |
+Carroll Lesesne      |Jimmy Reyes          |Katie Couric         |
+Rupert Friend        |Del Synnott          |Keira Knightley      |
+Jamie Dornan         |Del Synnott          |Keira Knightley      |
+Rupert Friend        |Jamie Dornan         |Keira Knightley      |
+Del Synnott          |Jamie Dornan         |Keira Knightley      |
+Kevin Mann           |Dax Shepard          |Kristen Bell         |
+Dax Shepard          |Kevin Mann           |Kristen Bell         |
+Sheryl Crow          |Kate Hudson          |Lance Armstrong      |
+Jason Wahler         |Brody Jenner         |Lauren Conrad        |
+Brody Jenner         |Jason Wahler         |Lauren Conrad        |
+Wilmer Valderrama    |Aaron Carter         |Lindsay Lohan        |
+Samantha Ronson      |Aaron Carter         |Lindsay Lohan        |
+Warren Beatty        |Carlos Leon          |Madonna              |
+Vanilla Ice          |Carlos Leon          |Madonna              |
+Tony Ward            |Carlos Leon          |Madonna              |
+Mark Kamins          |Carlos Leon          |Madonna              |
+John Benitez         |Carlos Leon          |Madonna              |
+Jean-Michel Basquiat |Carlos Leon          |Madonna              |
+Dennis Rodman        |Carlos Leon          |Madonna              |
+Warren Beatty        |Dennis Rodman        |Madonna              |
+Vanilla Ice          |Dennis Rodman        |Madonna              |
+Tony Ward            |Dennis Rodman        |Madonna              |
+Mark Kamins          |Dennis Rodman        |Madonna              |
+John Benitez         |Dennis Rodman        |Madonna              |
+Jean-Michel Basquiat |Dennis Rodman        |Madonna              |
+Carlos Leon          |Dennis Rodman        |Madonna              |
+Warren Beatty        |Jean-Michel Basquiat |Madonna              |
+Vanilla Ice          |Jean-Michel Basquiat |Madonna              |
+Tony Ward            |Jean-Michel Basquiat |Madonna              |
+Mark Kamins          |Jean-Michel Basquiat |Madonna              |
+John Benitez         |Jean-Michel Basquiat |Madonna              |
+Dennis Rodman        |Jean-Michel Basquiat |Madonna              |
+Carlos Leon          |Jean-Michel Basquiat |Madonna              |
+Warren Beatty        |John Benitez         |Madonna              |
+Vanilla Ice          |John Benitez         |Madonna              |
+Tony Ward            |John Benitez         |Madonna              |
+Mark Kamins          |John Benitez         |Madonna              |
+Jean-Michel Basquiat |John Benitez         |Madonna              |
+Dennis Rodman        |John Benitez         |Madonna              |
+Carlos Leon          |John Benitez         |Madonna              |
+Zach Braff           |Adam Goldstein       |Mandy Moore          |
+Wilmer Valderrama    |Adam Goldstein       |Mandy Moore          |
+Ryan Adams           |Adam Goldstein       |Mandy Moore          |
+Greg Laswell         |Adam Goldstein       |Mandy Moore          |
+Billy Crawford       |Adam Goldstein       |Mandy Moore          |
+Andy Roddick         |Adam Goldstein       |Mandy Moore          |
+Zach Braff           |Andy Roddick         |Mandy Moore          |
+Wilmer Valderrama    |Andy Roddick         |Mandy Moore          |
+Ryan Adams           |Andy Roddick         |Mandy Moore          |
+Greg Laswell         |Andy Roddick         |Mandy Moore          |
+Billy Crawford       |Andy Roddick         |Mandy Moore          |
+Adam Goldstein       |Andy Roddick         |Mandy Moore          |
+Zach Braff           |Billy Crawford       |Mandy Moore          |
+Wilmer Valderrama    |Billy Crawford       |Mandy Moore          |
+Ryan Adams           |Billy Crawford       |Mandy Moore          |
+Greg Laswell         |Billy Crawford       |Mandy Moore          |
+Andy Roddick         |Billy Crawford       |Mandy Moore          |
+Adam Goldstein       |Billy Crawford       |Mandy Moore          |
+Zach Braff           |Greg Laswell         |Mandy Moore          |
+Wilmer Valderrama    |Greg Laswell         |Mandy Moore          |
+Ryan Adams           |Greg Laswell         |Mandy Moore          |
+Billy Crawford       |Greg Laswell         |Mandy Moore          |
+Andy Roddick         |Greg Laswell         |Mandy Moore          |
+Adam Goldstein       |Greg Laswell         |Mandy Moore          |
+Jeffrey Dean Morgan  |Billy Crudup         |Mary-Louise Parker   |
+Billy Crudup         |Jeffrey Dean Morgan  |Mary-Louise Parker   |
+Uma Thurman          |Elizabeth Daily      |Nicolas Cage         |
+Robbie Williams      |Lenny Kravitz        |Nicole Kidman        |
+Joel Madden          |Adam Goldstein       |Nicole Richie        |
+Brody Jenner         |Adam Goldstein       |Nicole Richie        |
+Joel Madden          |Brody Jenner         |Nicole Richie        |
+Adam Goldstein       |Brody Jenner         |Nicole Richie        |
+Brody Jenner         |Joel Madden          |Nicole Richie        |
+Adam Goldstein       |Joel Madden          |Nicole Richie        |
+Kate Hudson          |Gina Gershon         |Owen Wilson          |
+Gina Gershon         |Kate Hudson          |Owen Wilson          |
+Marcus Schenkenberg  |Bret Michaels        |Pamela Anderson      |
+Bret Michaels        |Marcus Schenkenberg  |Pamela Anderson      |
+Howard Stern         |Brad Pitt            |Robin Givens         |
+Brad Pitt            |Howard Stern         |Robin Givens         |
+Winona Ryder         |Mandy Moore          |Ryan Adams           |
+Robert Downey Jr.    |John F. Kennedy, Jr. |Sarah Jessica Parker |
+Joshua Kadison       |John F. Kennedy, Jr. |Sarah Jessica Parker |
+Robert Downey Jr.    |Joshua Kadison       |Sarah Jessica Parker |
+John F. Kennedy, Jr. |Joshua Kadison       |Sarah Jessica Parker |
+Joshua Kadison       |Robert Downey Jr.    |Sarah Jessica Parker |
+John F. Kennedy, Jr. |Robert Downey Jr.    |Sarah Jessica Parker |
+Common               |Brett Ratner         |Serena Williams      |
+Brett Ratner         |Common               |Serena Williams      |
+Winona Ryder         |Charlize Theron      |Stephan Jenkins      |
+Gisele Bündchen      |Bridget Moynahan     |Tom Brady            |
+Bridget Moynahan     |Gisele Bündchen      |Tom Brady            |
+Penélope Cruz        |Cher                 |Tom Cruise           |
+Cher                 |Penélope Cruz        |Tom Cruise           |
+John Singleton       |Chris Webber         |Tyra Banks           |
+Chris Webber         |John Singleton       |Tyra Banks           |
+Madonna              |Britt Ekland         |Warren Beatty        |
+Leslie Caron         |Britt Ekland         |Warren Beatty        |
+Julie Christie       |Britt Ekland         |Warren Beatty        |
+Joan Collins         |Britt Ekland         |Warren Beatty        |
+Janice Dickinson     |Britt Ekland         |Warren Beatty        |
+Jane Fonda           |Britt Ekland         |Warren Beatty        |
+Isabelle Adjani      |Britt Ekland         |Warren Beatty        |
+Faye Dunaway         |Britt Ekland         |Warren Beatty        |
+Catherine Deneuve    |Britt Ekland         |Warren Beatty        |
+Carly Simon          |Britt Ekland         |Warren Beatty        |
+Candice Bergen       |Britt Ekland         |Warren Beatty        |
+Madonna              |Candice Bergen       |Warren Beatty        |
+Leslie Caron         |Candice Bergen       |Warren Beatty        |
+Julie Christie       |Candice Bergen       |Warren Beatty        |
+Joan Collins         |Candice Bergen       |Warren Beatty        |
+Janice Dickinson     |Candice Bergen       |Warren Beatty        |
+Jane Fonda           |Candice Bergen       |Warren Beatty        |
+Isabelle Adjani      |Candice Bergen       |Warren Beatty        |
+Faye Dunaway         |Candice Bergen       |Warren Beatty        |
+Catherine Deneuve    |Candice Bergen       |Warren Beatty        |
+Carly Simon          |Candice Bergen       |Warren Beatty        |
+Britt Ekland         |Candice Bergen       |Warren Beatty        |
+Madonna              |Carly Simon          |Warren Beatty        |
+Leslie Caron         |Carly Simon          |Warren Beatty        |
+Julie Christie       |Carly Simon          |Warren Beatty        |
+Joan Collins         |Carly Simon          |Warren Beatty        |
+Janice Dickinson     |Carly Simon          |Warren Beatty        |
+Jane Fonda           |Carly Simon          |Warren Beatty        |
+Isabelle Adjani      |Carly Simon          |Warren Beatty        |
+Faye Dunaway         |Carly Simon          |Warren Beatty        |
+Catherine Deneuve    |Carly Simon          |Warren Beatty        |
+Candice Bergen       |Carly Simon          |Warren Beatty        |
+Britt Ekland         |Carly Simon          |Warren Beatty        |
+Madonna              |Catherine Deneuve    |Warren Beatty        |
+Leslie Caron         |Catherine Deneuve    |Warren Beatty        |
+Julie Christie       |Catherine Deneuve    |Warren Beatty        |
+Joan Collins         |Catherine Deneuve    |Warren Beatty        |
+Janice Dickinson     |Catherine Deneuve    |Warren Beatty        |
+Jane Fonda           |Catherine Deneuve    |Warren Beatty        |
+Isabelle Adjani      |Catherine Deneuve    |Warren Beatty        |
+Faye Dunaway         |Catherine Deneuve    |Warren Beatty        |
+Carly Simon          |Catherine Deneuve    |Warren Beatty        |
+Candice Bergen       |Catherine Deneuve    |Warren Beatty        |
+Britt Ekland         |Catherine Deneuve    |Warren Beatty        |
+Madonna              |Faye Dunaway         |Warren Beatty        |
+Leslie Caron         |Faye Dunaway         |Warren Beatty        |
+Julie Christie       |Faye Dunaway         |Warren Beatty        |
+Joan Collins         |Faye Dunaway         |Warren Beatty        |
+Janice Dickinson     |Faye Dunaway         |Warren Beatty        |
+Jane Fonda           |Faye Dunaway         |Warren Beatty        |
+Isabelle Adjani      |Faye Dunaway         |Warren Beatty        |
+Catherine Deneuve    |Faye Dunaway         |Warren Beatty        |
+Carly Simon          |Faye Dunaway         |Warren Beatty        |
+Candice Bergen       |Faye Dunaway         |Warren Beatty        |
+Britt Ekland         |Faye Dunaway         |Warren Beatty        |
+Madonna              |Isabelle Adjani      |Warren Beatty        |
+Leslie Caron         |Isabelle Adjani      |Warren Beatty        |
+Julie Christie       |Isabelle Adjani      |Warren Beatty        |
+Joan Collins         |Isabelle Adjani      |Warren Beatty        |
+Janice Dickinson     |Isabelle Adjani      |Warren Beatty        |
+Jane Fonda           |Isabelle Adjani      |Warren Beatty        |
+Faye Dunaway         |Isabelle Adjani      |Warren Beatty        |
+Catherine Deneuve    |Isabelle Adjani      |Warren Beatty        |
+Carly Simon          |Isabelle Adjani      |Warren Beatty        |
+Candice Bergen       |Isabelle Adjani      |Warren Beatty        |
+Britt Ekland         |Isabelle Adjani      |Warren Beatty        |
+Madonna              |Jane Fonda           |Warren Beatty        |
+Leslie Caron         |Jane Fonda           |Warren Beatty        |
+Julie Christie       |Jane Fonda           |Warren Beatty        |
+Joan Collins         |Jane Fonda           |Warren Beatty        |
+Janice Dickinson     |Jane Fonda           |Warren Beatty        |
+Isabelle Adjani      |Jane Fonda           |Warren Beatty        |
+Faye Dunaway         |Jane Fonda           |Warren Beatty        |
+Catherine Deneuve    |Jane Fonda           |Warren Beatty        |
+Carly Simon          |Jane Fonda           |Warren Beatty        |
+Candice Bergen       |Jane Fonda           |Warren Beatty        |
+Britt Ekland         |Jane Fonda           |Warren Beatty        |
+Madonna              |Janice Dickinson     |Warren Beatty        |
+Leslie Caron         |Janice Dickinson     |Warren Beatty        |
+Julie Christie       |Janice Dickinson     |Warren Beatty        |
+Joan Collins         |Janice Dickinson     |Warren Beatty        |
+Jane Fonda           |Janice Dickinson     |Warren Beatty        |
+Isabelle Adjani      |Janice Dickinson     |Warren Beatty        |
+Faye Dunaway         |Janice Dickinson     |Warren Beatty        |
+Catherine Deneuve    |Janice Dickinson     |Warren Beatty        |
+Carly Simon          |Janice Dickinson     |Warren Beatty        |
+Candice Bergen       |Janice Dickinson     |Warren Beatty        |
+Britt Ekland         |Janice Dickinson     |Warren Beatty        |
+Madonna              |Joan Collins         |Warren Beatty        |
+Leslie Caron         |Joan Collins         |Warren Beatty        |
+Julie Christie       |Joan Collins         |Warren Beatty        |
+Janice Dickinson     |Joan Collins         |Warren Beatty        |
+Jane Fonda           |Joan Collins         |Warren Beatty        |
+Isabelle Adjani      |Joan Collins         |Warren Beatty        |
+Faye Dunaway         |Joan Collins         |Warren Beatty        |
+Catherine Deneuve    |Joan Collins         |Warren Beatty        |
+Carly Simon          |Joan Collins         |Warren Beatty        |
+Candice Bergen       |Joan Collins         |Warren Beatty        |
+Britt Ekland         |Joan Collins         |Warren Beatty        |
+Madonna              |Julie Christie       |Warren Beatty        |
+Leslie Caron         |Julie Christie       |Warren Beatty        |
+Joan Collins         |Julie Christie       |Warren Beatty        |
+Janice Dickinson     |Julie Christie       |Warren Beatty        |
+Jane Fonda           |Julie Christie       |Warren Beatty        |
+Isabelle Adjani      |Julie Christie       |Warren Beatty        |
+Faye Dunaway         |Julie Christie       |Warren Beatty        |
+Catherine Deneuve    |Julie Christie       |Warren Beatty        |
+Carly Simon          |Julie Christie       |Warren Beatty        |
+Candice Bergen       |Julie Christie       |Warren Beatty        |
+Britt Ekland         |Julie Christie       |Warren Beatty        |
+Madonna              |Leslie Caron         |Warren Beatty        |
+Julie Christie       |Leslie Caron         |Warren Beatty        |
+Joan Collins         |Leslie Caron         |Warren Beatty        |
+Janice Dickinson     |Leslie Caron         |Warren Beatty        |
+Jane Fonda           |Leslie Caron         |Warren Beatty        |
+Isabelle Adjani      |Leslie Caron         |Warren Beatty        |
+Faye Dunaway         |Leslie Caron         |Warren Beatty        |
+Catherine Deneuve    |Leslie Caron         |Warren Beatty        |
+Carly Simon          |Leslie Caron         |Warren Beatty        |
+Candice Bergen       |Leslie Caron         |Warren Beatty        |
+Britt Ekland         |Leslie Caron         |Warren Beatty        |
+Leslie Caron         |Madonna              |Warren Beatty        |
+Julie Christie       |Madonna              |Warren Beatty        |
+Joan Collins         |Madonna              |Warren Beatty        |
+Janice Dickinson     |Madonna              |Warren Beatty        |
+Jane Fonda           |Madonna              |Warren Beatty        |
+Isabelle Adjani      |Madonna              |Warren Beatty        |
+Faye Dunaway         |Madonna              |Warren Beatty        |
+Catherine Deneuve    |Madonna              |Warren Beatty        |
+Carly Simon          |Madonna              |Warren Beatty        |
+Candice Bergen       |Madonna              |Warren Beatty        |
+Britt Ekland         |Madonna              |Warren Beatty        |
+Mandy Moore          |Ashlee Simpson       |Wilmer Valderrama    |
+Lindsay Lohan        |Ashlee Simpson       |Wilmer Valderrama    |
+Jennifer Love Hewitt |Ashlee Simpson       |Wilmer Valderrama    |
+Mandy Moore          |Jennifer Love Hewitt |Wilmer Valderrama    |
+Lindsay Lohan        |Jennifer Love Hewitt |Wilmer Valderrama    |
+Ashlee Simpson       |Jennifer Love Hewitt |Wilmer Valderrama    |
+Mandy Moore          |Lindsay Lohan        |Wilmer Valderrama    |
+Jennifer Love Hewitt |Lindsay Lohan        |Wilmer Valderrama    |
+Ashlee Simpson       |Lindsay Lohan        |Wilmer Valderrama    |
+Lindsay Lohan        |Mandy Moore          |Wilmer Valderrama    |
+Jennifer Love Hewitt |Mandy Moore          |Wilmer Valderrama    |
+Ashlee Simpson       |Mandy Moore          |Wilmer Valderrama    |
+Tré Cool             |Adam Duritz          |Winona Ryder         |
+Stephan Jenkins      |Adam Duritz          |Winona Ryder         |
+Ryan Adams           |Adam Duritz          |Winona Ryder         |
+Rhett Miller         |Adam Duritz          |Winona Ryder         |
+Pete Yorn            |Adam Duritz          |Winona Ryder         |
+Paul Westerberg      |Adam Duritz          |Winona Ryder         |
+Matt Damon           |Adam Duritz          |Winona Ryder         |
+Mark Wahlberg        |Adam Duritz          |Winona Ryder         |
+Julian Casablancas   |Adam Duritz          |Winona Ryder         |
+Johnny Depp          |Adam Duritz          |Winona Ryder         |
+John Anthony Gillis  |Adam Duritz          |Winona Ryder         |
+Jason Kay            |Adam Duritz          |Winona Ryder         |
+Jakob Dylan          |Adam Duritz          |Winona Ryder         |
+Evan Dando           |Adam Duritz          |Winona Ryder         |
+David Duchovny       |Adam Duritz          |Winona Ryder         |
+Dave Pirner          |Adam Duritz          |Winona Ryder         |
+Dave Grohl           |Adam Duritz          |Winona Ryder         |
+Conor Oberst         |Adam Duritz          |Winona Ryder         |
+Christian Slater     |Adam Duritz          |Winona Ryder         |
+Chris Noth           |Adam Duritz          |Winona Ryder         |
+Chris Isaak          |Adam Duritz          |Winona Ryder         |
+Blake Sennett        |Adam Duritz          |Winona Ryder         |
+Beck                 |Adam Duritz          |Winona Ryder         |
+Tré Cool             |Beck                 |Winona Ryder         |
+Stephan Jenkins      |Beck                 |Winona Ryder         |
+Ryan Adams           |Beck                 |Winona Ryder         |
+Rhett Miller         |Beck                 |Winona Ryder         |
+Pete Yorn            |Beck                 |Winona Ryder         |
+Paul Westerberg      |Beck                 |Winona Ryder         |
+Matt Damon           |Beck                 |Winona Ryder         |
+Mark Wahlberg        |Beck                 |Winona Ryder         |
+Julian Casablancas   |Beck                 |Winona Ryder         |
+Johnny Depp          |Beck                 |Winona Ryder         |
+John Anthony Gillis  |Beck                 |Winona Ryder         |
+Jason Kay            |Beck                 |Winona Ryder         |
+Jakob Dylan          |Beck                 |Winona Ryder         |
+Evan Dando           |Beck                 |Winona Ryder         |
+David Duchovny       |Beck                 |Winona Ryder         |
+Dave Pirner          |Beck                 |Winona Ryder         |
+Dave Grohl           |Beck                 |Winona Ryder         |
+Conor Oberst         |Beck                 |Winona Ryder         |
+Christian Slater     |Beck                 |Winona Ryder         |
+Chris Noth           |Beck                 |Winona Ryder         |
+Chris Isaak          |Beck                 |Winona Ryder         |
+Blake Sennett        |Beck                 |Winona Ryder         |
+Adam Duritz          |Beck                 |Winona Ryder         |
+Tré Cool             |Blake Sennett        |Winona Ryder         |
+Stephan Jenkins      |Blake Sennett        |Winona Ryder         |
+Ryan Adams           |Blake Sennett        |Winona Ryder         |
+Rhett Miller         |Blake Sennett        |Winona Ryder         |
+Pete Yorn            |Blake Sennett        |Winona Ryder         |
+Paul Westerberg      |Blake Sennett        |Winona Ryder         |
+Matt Damon           |Blake Sennett        |Winona Ryder         |
+Mark Wahlberg        |Blake Sennett        |Winona Ryder         |
+Julian Casablancas   |Blake Sennett        |Winona Ryder         |
+Johnny Depp          |Blake Sennett        |Winona Ryder         |
+John Anthony Gillis  |Blake Sennett        |Winona Ryder         |
+Jason Kay            |Blake Sennett        |Winona Ryder         |
+Jakob Dylan          |Blake Sennett        |Winona Ryder         |
+Evan Dando           |Blake Sennett        |Winona Ryder         |
+David Duchovny       |Blake Sennett        |Winona Ryder         |
+Dave Pirner          |Blake Sennett        |Winona Ryder         |
+Dave Grohl           |Blake Sennett        |Winona Ryder         |
+Conor Oberst         |Blake Sennett        |Winona Ryder         |
+Christian Slater     |Blake Sennett        |Winona Ryder         |
+Chris Noth           |Blake Sennett        |Winona Ryder         |
+Chris Isaak          |Blake Sennett        |Winona Ryder         |
+Beck                 |Blake Sennett        |Winona Ryder         |
+Adam Duritz          |Blake Sennett        |Winona Ryder         |
+Tré Cool             |Chris Isaak          |Winona Ryder         |
+Stephan Jenkins      |Chris Isaak          |Winona Ryder         |
+Ryan Adams           |Chris Isaak          |Winona Ryder         |
+Rhett Miller         |Chris Isaak          |Winona Ryder         |
+Pete Yorn            |Chris Isaak          |Winona Ryder         |
+Paul Westerberg      |Chris Isaak          |Winona Ryder         |
+Matt Damon           |Chris Isaak          |Winona Ryder         |
+Mark Wahlberg        |Chris Isaak          |Winona Ryder         |
+Julian Casablancas   |Chris Isaak          |Winona Ryder         |
+Johnny Depp          |Chris Isaak          |Winona Ryder         |
+John Anthony Gillis  |Chris Isaak          |Winona Ryder         |
+Jason Kay            |Chris Isaak          |Winona Ryder         |
+Jakob Dylan          |Chris Isaak          |Winona Ryder         |
+Evan Dando           |Chris Isaak          |Winona Ryder         |
+David Duchovny       |Chris Isaak          |Winona Ryder         |
+Dave Pirner          |Chris Isaak          |Winona Ryder         |
+Dave Grohl           |Chris Isaak          |Winona Ryder         |
+Conor Oberst         |Chris Isaak          |Winona Ryder         |
+Christian Slater     |Chris Isaak          |Winona Ryder         |
+Chris Noth           |Chris Isaak          |Winona Ryder         |
+Blake Sennett        |Chris Isaak          |Winona Ryder         |
+Beck                 |Chris Isaak          |Winona Ryder         |
+Adam Duritz          |Chris Isaak          |Winona Ryder         |
+Tré Cool             |Chris Noth           |Winona Ryder         |
+Stephan Jenkins      |Chris Noth           |Winona Ryder         |
+Ryan Adams           |Chris Noth           |Winona Ryder         |
+Rhett Miller         |Chris Noth           |Winona Ryder         |
+Pete Yorn            |Chris Noth           |Winona Ryder         |
+Paul Westerberg      |Chris Noth           |Winona Ryder         |
+Matt Damon           |Chris Noth           |Winona Ryder         |
+Mark Wahlberg        |Chris Noth           |Winona Ryder         |
+Julian Casablancas   |Chris Noth           |Winona Ryder         |
+Johnny Depp          |Chris Noth           |Winona Ryder         |
+John Anthony Gillis  |Chris Noth           |Winona Ryder         |
+Jason Kay            |Chris Noth           |Winona Ryder         |
+Jakob Dylan          |Chris Noth           |Winona Ryder         |
+Evan Dando           |Chris Noth           |Winona Ryder         |
+David Duchovny       |Chris Noth           |Winona Ryder         |
+Dave Pirner          |Chris Noth           |Winona Ryder         |
+Dave Grohl           |Chris Noth           |Winona Ryder         |
+Conor Oberst         |Chris Noth           |Winona Ryder         |
+Christian Slater     |Chris Noth           |Winona Ryder         |
+Chris Isaak          |Chris Noth           |Winona Ryder         |
+Blake Sennett        |Chris Noth           |Winona Ryder         |
+Beck                 |Chris Noth           |Winona Ryder         |
+Adam Duritz          |Chris Noth           |Winona Ryder         |
+Tré Cool             |Christian Slater     |Winona Ryder         |
+Stephan Jenkins      |Christian Slater     |Winona Ryder         |
+Ryan Adams           |Christian Slater     |Winona Ryder         |
+Rhett Miller         |Christian Slater     |Winona Ryder         |
+Pete Yorn            |Christian Slater     |Winona Ryder         |
+Paul Westerberg      |Christian Slater     |Winona Ryder         |
+Matt Damon           |Christian Slater     |Winona Ryder         |
+Mark Wahlberg        |Christian Slater     |Winona Ryder         |
+Julian Casablancas   |Christian Slater     |Winona Ryder         |
+Johnny Depp          |Christian Slater     |Winona Ryder         |
+John Anthony Gillis  |Christian Slater     |Winona Ryder         |
+Jason Kay            |Christian Slater     |Winona Ryder         |
+Jakob Dylan          |Christian Slater     |Winona Ryder         |
+Evan Dando           |Christian Slater     |Winona Ryder         |
+David Duchovny       |Christian Slater     |Winona Ryder         |
+Dave Pirner          |Christian Slater     |Winona Ryder         |
+Dave Grohl           |Christian Slater     |Winona Ryder         |
+Conor Oberst         |Christian Slater     |Winona Ryder         |
+Chris Noth           |Christian Slater     |Winona Ryder         |
+Chris Isaak          |Christian Slater     |Winona Ryder         |
+Blake Sennett        |Christian Slater     |Winona Ryder         |
+Beck                 |Christian Slater     |Winona Ryder         |
+Adam Duritz          |Christian Slater     |Winona Ryder         |
+Tré Cool             |Conor Oberst         |Winona Ryder         |
+Stephan Jenkins      |Conor Oberst         |Winona Ryder         |
+Ryan Adams           |Conor Oberst         |Winona Ryder         |
+Rhett Miller         |Conor Oberst         |Winona Ryder         |
+Pete Yorn            |Conor Oberst         |Winona Ryder         |
+Paul Westerberg      |Conor Oberst         |Winona Ryder         |
+Matt Damon           |Conor Oberst         |Winona Ryder         |
+Mark Wahlberg        |Conor Oberst         |Winona Ryder         |
+Julian Casablancas   |Conor Oberst         |Winona Ryder         |
+Johnny Depp          |Conor Oberst         |Winona Ryder         |
+John Anthony Gillis  |Conor Oberst         |Winona Ryder         |
+Jason Kay            |Conor Oberst         |Winona Ryder         |
+Jakob Dylan          |Conor Oberst         |Winona Ryder         |
+Evan Dando           |Conor Oberst         |Winona Ryder         |
+David Duchovny       |Conor Oberst         |Winona Ryder         |
+Dave Pirner          |Conor Oberst         |Winona Ryder         |
+Dave Grohl           |Conor Oberst         |Winona Ryder         |
+Christian Slater     |Conor Oberst         |Winona Ryder         |
+Chris Noth           |Conor Oberst         |Winona Ryder         |
+Chris Isaak          |Conor Oberst         |Winona Ryder         |
+Blake Sennett        |Conor Oberst         |Winona Ryder         |
+Beck                 |Conor Oberst         |Winona Ryder         |
+Adam Duritz          |Conor Oberst         |Winona Ryder         |
+Tré Cool             |Dave Grohl           |Winona Ryder         |
+Stephan Jenkins      |Dave Grohl           |Winona Ryder         |
+Ryan Adams           |Dave Grohl           |Winona Ryder         |
+Rhett Miller         |Dave Grohl           |Winona Ryder         |
+Pete Yorn            |Dave Grohl           |Winona Ryder         |
+Paul Westerberg      |Dave Grohl           |Winona Ryder         |
+Matt Damon           |Dave Grohl           |Winona Ryder         |
+Mark Wahlberg        |Dave Grohl           |Winona Ryder         |
+Julian Casablancas   |Dave Grohl           |Winona Ryder         |
+Johnny Depp          |Dave Grohl           |Winona Ryder         |
+John Anthony Gillis  |Dave Grohl           |Winona Ryder         |
+Jason Kay            |Dave Grohl           |Winona Ryder         |
+Jakob Dylan          |Dave Grohl           |Winona Ryder         |
+Evan Dando           |Dave Grohl           |Winona Ryder         |
+David Duchovny       |Dave Grohl           |Winona Ryder         |
+Dave Pirner          |Dave Grohl           |Winona Ryder         |
+Conor Oberst         |Dave Grohl           |Winona Ryder         |
+Christian Slater     |Dave Grohl           |Winona Ryder         |
+Chris Noth           |Dave Grohl           |Winona Ryder         |
+Chris Isaak          |Dave Grohl           |Winona Ryder         |
+Blake Sennett        |Dave Grohl           |Winona Ryder         |
+Beck                 |Dave Grohl           |Winona Ryder         |
+Adam Duritz          |Dave Grohl           |Winona Ryder         |
+Tré Cool             |Dave Pirner          |Winona Ryder         |
+Stephan Jenkins      |Dave Pirner          |Winona Ryder         |
+Ryan Adams           |Dave Pirner          |Winona Ryder         |
+Rhett Miller         |Dave Pirner          |Winona Ryder         |
+Pete Yorn            |Dave Pirner          |Winona Ryder         |
+Paul Westerberg      |Dave Pirner          |Winona Ryder         |
+Matt Damon           |Dave Pirner          |Winona Ryder         |
+Mark Wahlberg        |Dave Pirner          |Winona Ryder         |
+Julian Casablancas   |Dave Pirner          |Winona Ryder         |
+Johnny Depp          |Dave Pirner          |Winona Ryder         |
+John Anthony Gillis  |Dave Pirner          |Winona Ryder         |
+Jason Kay            |Dave Pirner          |Winona Ryder         |
+Jakob Dylan          |Dave Pirner          |Winona Ryder         |
+Evan Dando           |Dave Pirner          |Winona Ryder         |
+David Duchovny       |Dave Pirner          |Winona Ryder         |
+Dave Grohl           |Dave Pirner          |Winona Ryder         |
+Conor Oberst         |Dave Pirner          |Winona Ryder         |
+Christian Slater     |Dave Pirner          |Winona Ryder         |
+Chris Noth           |Dave Pirner          |Winona Ryder         |
+Chris Isaak          |Dave Pirner          |Winona Ryder         |
+Blake Sennett        |Dave Pirner          |Winona Ryder         |
+Beck                 |Dave Pirner          |Winona Ryder         |
+Adam Duritz          |Dave Pirner          |Winona Ryder         |
+Tré Cool             |David Duchovny       |Winona Ryder         |
+Stephan Jenkins      |David Duchovny       |Winona Ryder         |
+Ryan Adams           |David Duchovny       |Winona Ryder         |
+Rhett Miller         |David Duchovny       |Winona Ryder         |
+Pete Yorn            |David Duchovny       |Winona Ryder         |
+Paul Westerberg      |David Duchovny       |Winona Ryder         |
+Matt Damon           |David Duchovny       |Winona Ryder         |
+Mark Wahlberg        |David Duchovny       |Winona Ryder         |
+Julian Casablancas   |David Duchovny       |Winona Ryder         |
+Johnny Depp          |David Duchovny       |Winona Ryder         |
+John Anthony Gillis  |David Duchovny       |Winona Ryder         |
+Jason Kay            |David Duchovny       |Winona Ryder         |
+Jakob Dylan          |David Duchovny       |Winona Ryder         |
+Evan Dando           |David Duchovny       |Winona Ryder         |
+Dave Pirner          |David Duchovny       |Winona Ryder         |
+Dave Grohl           |David Duchovny       |Winona Ryder         |
+Conor Oberst         |David Duchovny       |Winona Ryder         |
+Christian Slater     |David Duchovny       |Winona Ryder         |
+Chris Noth           |David Duchovny       |Winona Ryder         |
+Chris Isaak          |David Duchovny       |Winona Ryder         |
+Blake Sennett        |David Duchovny       |Winona Ryder         |
+Beck                 |David Duchovny       |Winona Ryder         |
+Adam Duritz          |David Duchovny       |Winona Ryder         |
+Tré Cool             |Evan Dando           |Winona Ryder         |
+Stephan Jenkins      |Evan Dando           |Winona Ryder         |
+Ryan Adams           |Evan Dando           |Winona Ryder         |
+Rhett Miller         |Evan Dando           |Winona Ryder         |
+Pete Yorn            |Evan Dando           |Winona Ryder         |
+Paul Westerberg      |Evan Dando           |Winona Ryder         |
+Matt Damon           |Evan Dando           |Winona Ryder         |
+Mark Wahlberg        |Evan Dando           |Winona Ryder         |
+Julian Casablancas   |Evan Dando           |Winona Ryder         |
+Johnny Depp          |Evan Dando           |Winona Ryder         |
+John Anthony Gillis  |Evan Dando           |Winona Ryder         |
+Jason Kay            |Evan Dando           |Winona Ryder         |
+Jakob Dylan          |Evan Dando           |Winona Ryder         |
+David Duchovny       |Evan Dando           |Winona Ryder         |
+Dave Pirner          |Evan Dando           |Winona Ryder         |
+Dave Grohl           |Evan Dando           |Winona Ryder         |
+Conor Oberst         |Evan Dando           |Winona Ryder         |
+Christian Slater     |Evan Dando           |Winona Ryder         |
+Chris Noth           |Evan Dando           |Winona Ryder         |
+Chris Isaak          |Evan Dando           |Winona Ryder         |
+Blake Sennett        |Evan Dando           |Winona Ryder         |
+Beck                 |Evan Dando           |Winona Ryder         |
+Adam Duritz          |Evan Dando           |Winona Ryder         |
+Tré Cool             |Jakob Dylan          |Winona Ryder         |
+Stephan Jenkins      |Jakob Dylan          |Winona Ryder         |
+Ryan Adams           |Jakob Dylan          |Winona Ryder         |
+Rhett Miller         |Jakob Dylan          |Winona Ryder         |
+Pete Yorn            |Jakob Dylan          |Winona Ryder         |
+Paul Westerberg      |Jakob Dylan          |Winona Ryder         |
+Matt Damon           |Jakob Dylan          |Winona Ryder         |
+Mark Wahlberg        |Jakob Dylan          |Winona Ryder         |
+Julian Casablancas   |Jakob Dylan          |Winona Ryder         |
+Johnny Depp          |Jakob Dylan          |Winona Ryder         |
+John Anthony Gillis  |Jakob Dylan          |Winona Ryder         |
+Jason Kay            |Jakob Dylan          |Winona Ryder         |
+Evan Dando           |Jakob Dylan          |Winona Ryder         |
+David Duchovny       |Jakob Dylan          |Winona Ryder         |
+Dave Pirner          |Jakob Dylan          |Winona Ryder         |
+Dave Grohl           |Jakob Dylan          |Winona Ryder         |
+Conor Oberst         |Jakob Dylan          |Winona Ryder         |
+Christian Slater     |Jakob Dylan          |Winona Ryder         |
+Chris Noth           |Jakob Dylan          |Winona Ryder         |
+Chris Isaak          |Jakob Dylan          |Winona Ryder         |
+Blake Sennett        |Jakob Dylan          |Winona Ryder         |
+Beck                 |Jakob Dylan          |Winona Ryder         |
+Adam Duritz          |Jakob Dylan          |Winona Ryder         |
+Tré Cool             |Jason Kay            |Winona Ryder         |
+Stephan Jenkins      |Jason Kay            |Winona Ryder         |
+Ryan Adams           |Jason Kay            |Winona Ryder         |
+Rhett Miller         |Jason Kay            |Winona Ryder         |
+Pete Yorn            |Jason Kay            |Winona Ryder         |
+Paul Westerberg      |Jason Kay            |Winona Ryder         |
+Matt Damon           |Jason Kay            |Winona Ryder         |
+Mark Wahlberg        |Jason Kay            |Winona Ryder         |
+Julian Casablancas   |Jason Kay            |Winona Ryder         |
+Johnny Depp          |Jason Kay            |Winona Ryder         |
+John Anthony Gillis  |Jason Kay            |Winona Ryder         |
+Jakob Dylan          |Jason Kay            |Winona Ryder         |
+Evan Dando           |Jason Kay            |Winona Ryder         |
+David Duchovny       |Jason Kay            |Winona Ryder         |
+Dave Pirner          |Jason Kay            |Winona Ryder         |
+Dave Grohl           |Jason Kay            |Winona Ryder         |
+Conor Oberst         |Jason Kay            |Winona Ryder         |
+Christian Slater     |Jason Kay            |Winona Ryder         |
+Chris Noth           |Jason Kay            |Winona Ryder         |
+Chris Isaak          |Jason Kay            |Winona Ryder         |
+Blake Sennett        |Jason Kay            |Winona Ryder         |
+Beck                 |Jason Kay            |Winona Ryder         |
+Adam Duritz          |Jason Kay            |Winona Ryder         |
+Tré Cool             |John Anthony Gillis  |Winona Ryder         |
+Stephan Jenkins      |John Anthony Gillis  |Winona Ryder         |
+Ryan Adams           |John Anthony Gillis  |Winona Ryder         |
+Rhett Miller         |John Anthony Gillis  |Winona Ryder         |
+Pete Yorn            |John Anthony Gillis  |Winona Ryder         |
+Paul Westerberg      |John Anthony Gillis  |Winona Ryder         |
+Matt Damon           |John Anthony Gillis  |Winona Ryder         |
+Mark Wahlberg        |John Anthony Gillis  |Winona Ryder         |
+Julian Casablancas   |John Anthony Gillis  |Winona Ryder         |
+Johnny Depp          |John Anthony Gillis  |Winona Ryder         |
+Jason Kay            |John Anthony Gillis  |Winona Ryder         |
+Jakob Dylan          |John Anthony Gillis  |Winona Ryder         |
+Evan Dando           |John Anthony Gillis  |Winona Ryder         |
+David Duchovny       |John Anthony Gillis  |Winona Ryder         |
+Dave Pirner          |John Anthony Gillis  |Winona Ryder         |
+Dave Grohl           |John Anthony Gillis  |Winona Ryder         |
+Conor Oberst         |John Anthony Gillis  |Winona Ryder         |
+Christian Slater     |John Anthony Gillis  |Winona Ryder         |
+Chris Noth           |John Anthony Gillis  |Winona Ryder         |
+Chris Isaak          |John Anthony Gillis  |Winona Ryder         |
+Blake Sennett        |John Anthony Gillis  |Winona Ryder         |
+Beck                 |John Anthony Gillis  |Winona Ryder         |
+Adam Duritz          |John Anthony Gillis  |Winona Ryder         |
+Tré Cool             |Johnny Depp          |Winona Ryder         |
+Stephan Jenkins      |Johnny Depp          |Winona Ryder         |
+Ryan Adams           |Johnny Depp          |Winona Ryder         |
+Rhett Miller         |Johnny Depp          |Winona Ryder         |
+Pete Yorn            |Johnny Depp          |Winona Ryder         |
+Paul Westerberg      |Johnny Depp          |Winona Ryder         |
+Matt Damon           |Johnny Depp          |Winona Ryder         |
+Mark Wahlberg        |Johnny Depp          |Winona Ryder         |
+Julian Casablancas   |Johnny Depp          |Winona Ryder         |
+John Anthony Gillis  |Johnny Depp          |Winona Ryder         |
+Jason Kay            |Johnny Depp          |Winona Ryder         |
+Jakob Dylan          |Johnny Depp          |Winona Ryder         |
+Evan Dando           |Johnny Depp          |Winona Ryder         |
+David Duchovny       |Johnny Depp          |Winona Ryder         |
+Dave Pirner          |Johnny Depp          |Winona Ryder         |
+Dave Grohl           |Johnny Depp          |Winona Ryder         |
+Conor Oberst         |Johnny Depp          |Winona Ryder         |
+Christian Slater     |Johnny Depp          |Winona Ryder         |
+Chris Noth           |Johnny Depp          |Winona Ryder         |
+Chris Isaak          |Johnny Depp          |Winona Ryder         |
+Blake Sennett        |Johnny Depp          |Winona Ryder         |
+Beck                 |Johnny Depp          |Winona Ryder         |
+Adam Duritz          |Johnny Depp          |Winona Ryder         |
+Tré Cool             |Julian Casablancas   |Winona Ryder         |
+Stephan Jenkins      |Julian Casablancas   |Winona Ryder         |
+Ryan Adams           |Julian Casablancas   |Winona Ryder         |
+Rhett Miller         |Julian Casablancas   |Winona Ryder         |
+Pete Yorn            |Julian Casablancas   |Winona Ryder         |
+Paul Westerberg      |Julian Casablancas   |Winona Ryder         |
+Matt Damon           |Julian Casablancas   |Winona Ryder         |
+Mark Wahlberg        |Julian Casablancas   |Winona Ryder         |
+Johnny Depp          |Julian Casablancas   |Winona Ryder         |
+John Anthony Gillis  |Julian Casablancas   |Winona Ryder         |
+Jason Kay            |Julian Casablancas   |Winona Ryder         |
+Jakob Dylan          |Julian Casablancas   |Winona Ryder         |
+Evan Dando           |Julian Casablancas   |Winona Ryder         |
+David Duchovny       |Julian Casablancas   |Winona Ryder         |
+Dave Pirner          |Julian Casablancas   |Winona Ryder         |
+Dave Grohl           |Julian Casablancas   |Winona Ryder         |
+Conor Oberst         |Julian Casablancas   |Winona Ryder         |
+Christian Slater     |Julian Casablancas   |Winona Ryder         |
+Chris Noth           |Julian Casablancas   |Winona Ryder         |
+Chris Isaak          |Julian Casablancas   |Winona Ryder         |
+Blake Sennett        |Julian Casablancas   |Winona Ryder         |
+Beck                 |Julian Casablancas   |Winona Ryder         |
+Adam Duritz          |Julian Casablancas   |Winona Ryder         |
+Tré Cool             |Mark Wahlberg        |Winona Ryder         |
+Stephan Jenkins      |Mark Wahlberg        |Winona Ryder         |
+Ryan Adams           |Mark Wahlberg        |Winona Ryder         |
+Rhett Miller         |Mark Wahlberg        |Winona Ryder         |
+Pete Yorn            |Mark Wahlberg        |Winona Ryder         |
+Paul Westerberg      |Mark Wahlberg        |Winona Ryder         |
+Matt Damon           |Mark Wahlberg        |Winona Ryder         |
+Julian Casablancas   |Mark Wahlberg        |Winona Ryder         |
+Johnny Depp          |Mark Wahlberg        |Winona Ryder         |
+John Anthony Gillis  |Mark Wahlberg        |Winona Ryder         |
+Jason Kay            |Mark Wahlberg        |Winona Ryder         |
+Jakob Dylan          |Mark Wahlberg        |Winona Ryder         |
+Evan Dando           |Mark Wahlberg        |Winona Ryder         |
+David Duchovny       |Mark Wahlberg        |Winona Ryder         |
+Dave Pirner          |Mark Wahlberg        |Winona Ryder         |
+Dave Grohl           |Mark Wahlberg        |Winona Ryder         |
+Conor Oberst         |Mark Wahlberg        |Winona Ryder         |
+Christian Slater     |Mark Wahlberg        |Winona Ryder         |
+Chris Noth           |Mark Wahlberg        |Winona Ryder         |
+Chris Isaak          |Mark Wahlberg        |Winona Ryder         |
+Blake Sennett        |Mark Wahlberg        |Winona Ryder         |
+Beck                 |Mark Wahlberg        |Winona Ryder         |
+Adam Duritz          |Mark Wahlberg        |Winona Ryder         |
+Tré Cool             |Matt Damon           |Winona Ryder         |
+Stephan Jenkins      |Matt Damon           |Winona Ryder         |
+Ryan Adams           |Matt Damon           |Winona Ryder         |
+Rhett Miller         |Matt Damon           |Winona Ryder         |
+Pete Yorn            |Matt Damon           |Winona Ryder         |
+Paul Westerberg      |Matt Damon           |Winona Ryder         |
+Mark Wahlberg        |Matt Damon           |Winona Ryder         |
+Julian Casablancas   |Matt Damon           |Winona Ryder         |
+Johnny Depp          |Matt Damon           |Winona Ryder         |
+John Anthony Gillis  |Matt Damon           |Winona Ryder         |
+Jason Kay            |Matt Damon           |Winona Ryder         |
+Jakob Dylan          |Matt Damon           |Winona Ryder         |
+Evan Dando           |Matt Damon           |Winona Ryder         |
+David Duchovny       |Matt Damon           |Winona Ryder         |
+Dave Pirner          |Matt Damon           |Winona Ryder         |
+Dave Grohl           |Matt Damon           |Winona Ryder         |
+Conor Oberst         |Matt Damon           |Winona Ryder         |
+Christian Slater     |Matt Damon           |Winona Ryder         |
+Chris Noth           |Matt Damon           |Winona Ryder         |
+Chris Isaak          |Matt Damon           |Winona Ryder         |
+Blake Sennett        |Matt Damon           |Winona Ryder         |
+Beck                 |Matt Damon           |Winona Ryder         |
+Adam Duritz          |Matt Damon           |Winona Ryder         |
+Tré Cool             |Paul Westerberg      |Winona Ryder         |
+Stephan Jenkins      |Paul Westerberg      |Winona Ryder         |
+Ryan Adams           |Paul Westerberg      |Winona Ryder         |
+Rhett Miller         |Paul Westerberg      |Winona Ryder         |
+Pete Yorn            |Paul Westerberg      |Winona Ryder         |
+Matt Damon           |Paul Westerberg      |Winona Ryder         |
+Mark Wahlberg        |Paul Westerberg      |Winona Ryder         |
+Julian Casablancas   |Paul Westerberg      |Winona Ryder         |
+Johnny Depp          |Paul Westerberg      |Winona Ryder         |
+John Anthony Gillis  |Paul Westerberg      |Winona Ryder         |
+Jason Kay            |Paul Westerberg      |Winona Ryder         |
+Jakob Dylan          |Paul Westerberg      |Winona Ryder         |
+Evan Dando           |Paul Westerberg      |Winona Ryder         |
+David Duchovny       |Paul Westerberg      |Winona Ryder         |
+Dave Pirner          |Paul Westerberg      |Winona Ryder         |
+Dave Grohl           |Paul Westerberg      |Winona Ryder         |
+Conor Oberst         |Paul Westerberg      |Winona Ryder         |
+Christian Slater     |Paul Westerberg      |Winona Ryder         |
+Chris Noth           |Paul Westerberg      |Winona Ryder         |
+Chris Isaak          |Paul Westerberg      |Winona Ryder         |
+Blake Sennett        |Paul Westerberg      |Winona Ryder         |
+Beck                 |Paul Westerberg      |Winona Ryder         |
+Adam Duritz          |Paul Westerberg      |Winona Ryder         |
+Tré Cool             |Pete Yorn            |Winona Ryder         |
+Stephan Jenkins      |Pete Yorn            |Winona Ryder         |
+Ryan Adams           |Pete Yorn            |Winona Ryder         |
+Rhett Miller         |Pete Yorn            |Winona Ryder         |
+Paul Westerberg      |Pete Yorn            |Winona Ryder         |
+Matt Damon           |Pete Yorn            |Winona Ryder         |
+Mark Wahlberg        |Pete Yorn            |Winona Ryder         |
+Julian Casablancas   |Pete Yorn            |Winona Ryder         |
+Johnny Depp          |Pete Yorn            |Winona Ryder         |
+John Anthony Gillis  |Pete Yorn            |Winona Ryder         |
+Jason Kay            |Pete Yorn            |Winona Ryder         |
+Jakob Dylan          |Pete Yorn            |Winona Ryder         |
+Evan Dando           |Pete Yorn            |Winona Ryder         |
+David Duchovny       |Pete Yorn            |Winona Ryder         |
+Dave Pirner          |Pete Yorn            |Winona Ryder         |
+Dave Grohl           |Pete Yorn            |Winona Ryder         |
+Conor Oberst         |Pete Yorn            |Winona Ryder         |
+Christian Slater     |Pete Yorn            |Winona Ryder         |
+Chris Noth           |Pete Yorn            |Winona Ryder         |
+Chris Isaak          |Pete Yorn            |Winona Ryder         |
+Blake Sennett        |Pete Yorn            |Winona Ryder         |
+Beck                 |Pete Yorn            |Winona Ryder         |
+Adam Duritz          |Pete Yorn            |Winona Ryder         |
+Tré Cool             |Rhett Miller         |Winona Ryder         |
+Stephan Jenkins      |Rhett Miller         |Winona Ryder         |
+Ryan Adams           |Rhett Miller         |Winona Ryder         |
+Pete Yorn            |Rhett Miller         |Winona Ryder         |
+Paul Westerberg      |Rhett Miller         |Winona Ryder         |
+Matt Damon           |Rhett Miller         |Winona Ryder         |
+Mark Wahlberg        |Rhett Miller         |Winona Ryder         |
+Julian Casablancas   |Rhett Miller         |Winona Ryder         |
+Johnny Depp          |Rhett Miller         |Winona Ryder         |
+John Anthony Gillis  |Rhett Miller         |Winona Ryder         |
+Jason Kay            |Rhett Miller         |Winona Ryder         |
+Jakob Dylan          |Rhett Miller         |Winona Ryder         |
+Evan Dando           |Rhett Miller         |Winona Ryder         |
+David Duchovny       |Rhett Miller         |Winona Ryder         |
+Dave Pirner          |Rhett Miller         |Winona Ryder         |
+Dave Grohl           |Rhett Miller         |Winona Ryder         |
+Conor Oberst         |Rhett Miller         |Winona Ryder         |
+Christian Slater     |Rhett Miller         |Winona Ryder         |
+Chris Noth           |Rhett Miller         |Winona Ryder         |
+Chris Isaak          |Rhett Miller         |Winona Ryder         |
+Blake Sennett        |Rhett Miller         |Winona Ryder         |
+Beck                 |Rhett Miller         |Winona Ryder         |
+Adam Duritz          |Rhett Miller         |Winona Ryder         |
+Tré Cool             |Ryan Adams           |Winona Ryder         |
+Stephan Jenkins      |Ryan Adams           |Winona Ryder         |
+Rhett Miller         |Ryan Adams           |Winona Ryder         |
+Pete Yorn            |Ryan Adams           |Winona Ryder         |
+Paul Westerberg      |Ryan Adams           |Winona Ryder         |
+Matt Damon           |Ryan Adams           |Winona Ryder         |
+Mark Wahlberg        |Ryan Adams           |Winona Ryder         |
+Julian Casablancas   |Ryan Adams           |Winona Ryder         |
+Johnny Depp          |Ryan Adams           |Winona Ryder         |
+John Anthony Gillis  |Ryan Adams           |Winona Ryder         |
+Jason Kay            |Ryan Adams           |Winona Ryder         |
+Jakob Dylan          |Ryan Adams           |Winona Ryder         |
+Evan Dando           |Ryan Adams           |Winona Ryder         |
+David Duchovny       |Ryan Adams           |Winona Ryder         |
+Dave Pirner          |Ryan Adams           |Winona Ryder         |
+Dave Grohl           |Ryan Adams           |Winona Ryder         |
+Conor Oberst         |Ryan Adams           |Winona Ryder         |
+Christian Slater     |Ryan Adams           |Winona Ryder         |
+Chris Noth           |Ryan Adams           |Winona Ryder         |
+Chris Isaak          |Ryan Adams           |Winona Ryder         |
+Blake Sennett        |Ryan Adams           |Winona Ryder         |
+Beck                 |Ryan Adams           |Winona Ryder         |
+Adam Duritz          |Ryan Adams           |Winona Ryder         |
+Tré Cool             |Stephan Jenkins      |Winona Ryder         |
+Ryan Adams           |Stephan Jenkins      |Winona Ryder         |
+Rhett Miller         |Stephan Jenkins      |Winona Ryder         |
+Pete Yorn            |Stephan Jenkins      |Winona Ryder         |
+Paul Westerberg      |Stephan Jenkins      |Winona Ryder         |
+Matt Damon           |Stephan Jenkins      |Winona Ryder         |
+Mark Wahlberg        |Stephan Jenkins      |Winona Ryder         |
+Julian Casablancas   |Stephan Jenkins      |Winona Ryder         |
+Johnny Depp          |Stephan Jenkins      |Winona Ryder         |
+John Anthony Gillis  |Stephan Jenkins      |Winona Ryder         |
+Jason Kay            |Stephan Jenkins      |Winona Ryder         |
+Jakob Dylan          |Stephan Jenkins      |Winona Ryder         |
+Evan Dando           |Stephan Jenkins      |Winona Ryder         |
+David Duchovny       |Stephan Jenkins      |Winona Ryder         |
+Dave Pirner          |Stephan Jenkins      |Winona Ryder         |
+Dave Grohl           |Stephan Jenkins      |Winona Ryder         |
+Conor Oberst         |Stephan Jenkins      |Winona Ryder         |
+Christian Slater     |Stephan Jenkins      |Winona Ryder         |
+Chris Noth           |Stephan Jenkins      |Winona Ryder         |
+Chris Isaak          |Stephan Jenkins      |Winona Ryder         |
+Blake Sennett        |Stephan Jenkins      |Winona Ryder         |
+Beck                 |Stephan Jenkins      |Winona Ryder         |
+Adam Duritz          |Stephan Jenkins      |Winona Ryder         |
+Stephan Jenkins      |Tré Cool             |Winona Ryder         |
+Ryan Adams           |Tré Cool             |Winona Ryder         |
+Rhett Miller         |Tré Cool             |Winona Ryder         |
+Pete Yorn            |Tré Cool             |Winona Ryder         |
+Paul Westerberg      |Tré Cool             |Winona Ryder         |
+Matt Damon           |Tré Cool             |Winona Ryder         |
+Mark Wahlberg        |Tré Cool             |Winona Ryder         |
+Julian Casablancas   |Tré Cool             |Winona Ryder         |
+Johnny Depp          |Tré Cool             |Winona Ryder         |
+John Anthony Gillis  |Tré Cool             |Winona Ryder         |
+Jason Kay            |Tré Cool             |Winona Ryder         |
+Jakob Dylan          |Tré Cool             |Winona Ryder         |
+Evan Dando           |Tré Cool             |Winona Ryder         |
+David Duchovny       |Tré Cool             |Winona Ryder         |
+Dave Pirner          |Tré Cool             |Winona Ryder         |
+Dave Grohl           |Tré Cool             |Winona Ryder         |
+Conor Oberst         |Tré Cool             |Winona Ryder         |
+Christian Slater     |Tré Cool             |Winona Ryder         |
+Chris Noth           |Tré Cool             |Winona Ryder         |
+Chris Isaak          |Tré Cool             |Winona Ryder         |
+Blake Sennett        |Tré Cool             |Winona Ryder         |
+Beck                 |Tré Cool             |Winona Ryder         |
+Adam Duritz          |Tré Cool             |Winona Ryder         |
+Stacey Nelkin        |Diane Keaton         |Woody Allen          |
+Soon-Yi Previn       |Diane Keaton         |Woody Allen          |
+Mia Farrow           |Diane Keaton         |Woody Allen          |
+Stacey Nelkin        |Mia Farrow           |Woody Allen          |
+Soon-Yi Previn       |Mia Farrow           |Woody Allen          |
+Diane Keaton         |Mia Farrow           |Woody Allen          |
+Stacey Nelkin        |Soon-Yi Previn       |Woody Allen          |
+Mia Farrow           |Soon-Yi Previn       |Woody Allen          |
+Diane Keaton         |Soon-Yi Previn       |Woody Allen          |
+Soon-Yi Previn       |Stacey Nelkin        |Woody Allen          |
+Mia Farrow           |Stacey Nelkin        |Woody Allen          |
+Diane Keaton         |Stacey Nelkin        |Woody Allen          |
+Winona Ryder         |Jennifer Aniston     |Adam Duritz          |
+Jennifer Aniston     |Winona Ryder         |Adam Duritz          |
+Nicole Richie        |Mandy Moore          |Adam Goldstein       |
+Mandy Moore          |Nicole Richie        |Adam Goldstein       |
+Wilmer Valderrama    |Braxton Olita        |Ashlee Simpson       |
+Ryan Cabrera         |Braxton Olita        |Ashlee Simpson       |
+Josh Henderson       |Braxton Olita        |Ashlee Simpson       |
+Gregory Smith        |Braxton Olita        |Ashlee Simpson       |
+Chris Raab           |Braxton Olita        |Ashlee Simpson       |
+Wilmer Valderrama    |Chris Raab           |Ashlee Simpson       |
+Ryan Cabrera         |Chris Raab           |Ashlee Simpson       |
+Josh Henderson       |Chris Raab           |Ashlee Simpson       |
+Gregory Smith        |Chris Raab           |Ashlee Simpson       |
+Braxton Olita        |Chris Raab           |Ashlee Simpson       |
+Wilmer Valderrama    |Gregory Smith        |Ashlee Simpson       |
+Ryan Cabrera         |Gregory Smith        |Ashlee Simpson       |
+Josh Henderson       |Gregory Smith        |Ashlee Simpson       |
+Chris Raab           |Gregory Smith        |Ashlee Simpson       |
+Braxton Olita        |Gregory Smith        |Ashlee Simpson       |
+Wilmer Valderrama    |Josh Henderson       |Ashlee Simpson       |
+Ryan Cabrera         |Josh Henderson       |Ashlee Simpson       |
+Gregory Smith        |Josh Henderson       |Ashlee Simpson       |
+Chris Raab           |Josh Henderson       |Ashlee Simpson       |
+Braxton Olita        |Josh Henderson       |Ashlee Simpson       |
+Wilmer Valderrama    |Ryan Cabrera         |Ashlee Simpson       |
+Josh Henderson       |Ryan Cabrera         |Ashlee Simpson       |
+Gregory Smith        |Ryan Cabrera         |Ashlee Simpson       |
+Chris Raab           |Ryan Cabrera         |Ashlee Simpson       |
+Braxton Olita        |Ryan Cabrera         |Ashlee Simpson       |
+Ryan Cabrera         |Wilmer Valderrama    |Ashlee Simpson       |
+Josh Henderson       |Wilmer Valderrama    |Ashlee Simpson       |
+Gregory Smith        |Wilmer Valderrama    |Ashlee Simpson       |
+Chris Raab           |Wilmer Valderrama    |Ashlee Simpson       |
+Braxton Olita        |Wilmer Valderrama    |Ashlee Simpson       |
+Jennifer Lopez       |Gwyneth Paltrow      |Ben Affleck          |
+Gwyneth Paltrow      |Jennifer Lopez       |Ben Affleck          |
+Jeanne Tripplehorn   |Calista Flockhart    |Ben Stiller          |
+Janeane Garofalo     |Calista Flockhart    |Ben Stiller          |
+Amanda Peet          |Calista Flockhart    |Ben Stiller          |
+Jeanne Tripplehorn   |Janeane Garofalo     |Ben Stiller          |
+Calista Flockhart    |Janeane Garofalo     |Ben Stiller          |
+Amanda Peet          |Janeane Garofalo     |Ben Stiller          |
+Janeane Garofalo     |Jeanne Tripplehorn   |Ben Stiller          |
+Calista Flockhart    |Jeanne Tripplehorn   |Ben Stiller          |
+Amanda Peet          |Jeanne Tripplehorn   |Ben Stiller          |
+Mary-Louise Parker   |Claire Danes         |Billy Crudup         |
+Claire Danes         |Mary-Louise Parker   |Billy Crudup         |
+Thandie Newton       |Gwyneth Paltrow      |Brad Pitt            |
+Sinitta              |Gwyneth Paltrow      |Brad Pitt            |
+Shalane McCall       |Gwyneth Paltrow      |Brad Pitt            |
+Robin Givens         |Gwyneth Paltrow      |Brad Pitt            |
+Juliette Lewis       |Gwyneth Paltrow      |Brad Pitt            |
+Jill Schoelen        |Gwyneth Paltrow      |Brad Pitt            |
+Thandie Newton       |Jill Schoelen        |Brad Pitt            |
+Sinitta              |Jill Schoelen        |Brad Pitt            |
+Shalane McCall       |Jill Schoelen        |Brad Pitt            |
+Robin Givens         |Jill Schoelen        |Brad Pitt            |
+Juliette Lewis       |Jill Schoelen        |Brad Pitt            |
+Gwyneth Paltrow      |Jill Schoelen        |Brad Pitt            |
+Thandie Newton       |Juliette Lewis       |Brad Pitt            |
+Sinitta              |Juliette Lewis       |Brad Pitt            |
+Shalane McCall       |Juliette Lewis       |Brad Pitt            |
+Robin Givens         |Juliette Lewis       |Brad Pitt            |
+Jill Schoelen        |Juliette Lewis       |Brad Pitt            |
+Gwyneth Paltrow      |Juliette Lewis       |Brad Pitt            |
+Thandie Newton       |Robin Givens         |Brad Pitt            |
+Sinitta              |Robin Givens         |Brad Pitt            |
+Shalane McCall       |Robin Givens         |Brad Pitt            |
+Juliette Lewis       |Robin Givens         |Brad Pitt            |
+Jill Schoelen        |Robin Givens         |Brad Pitt            |
+Gwyneth Paltrow      |Robin Givens         |Brad Pitt            |
+Thandie Newton       |Shalane McCall       |Brad Pitt            |
+Sinitta              |Shalane McCall       |Brad Pitt            |
+Robin Givens         |Shalane McCall       |Brad Pitt            |
+Juliette Lewis       |Shalane McCall       |Brad Pitt            |
+Jill Schoelen        |Shalane McCall       |Brad Pitt            |
+Gwyneth Paltrow      |Shalane McCall       |Brad Pitt            |
+Thandie Newton       |Sinitta              |Brad Pitt            |
+Shalane McCall       |Sinitta              |Brad Pitt            |
+Robin Givens         |Sinitta              |Brad Pitt            |
+Juliette Lewis       |Sinitta              |Brad Pitt            |
+Jill Schoelen        |Sinitta              |Brad Pitt            |
+Gwyneth Paltrow      |Sinitta              |Brad Pitt            |
+Sinitta              |Thandie Newton       |Brad Pitt            |
+Shalane McCall       |Thandie Newton       |Brad Pitt            |
+Robin Givens         |Thandie Newton       |Brad Pitt            |
+Juliette Lewis       |Thandie Newton       |Brad Pitt            |
+Jill Schoelen        |Thandie Newton       |Brad Pitt            |
+Gwyneth Paltrow      |Thandie Newton       |Brad Pitt            |
+Justin Timberlake    |Fred Durst           |Britney Spears       |
+Fred Durst           |Justin Timberlake    |Britney Spears       |
+Nicole Richie        |Lauren Conrad        |Brody Jenner         |
+Lauren Conrad        |Nicole Richie        |Brody Jenner         |
+Tamara Witmer        |Emily Sandberg       |Bruce Willis         |
+Maria Bravo Rosado   |Emily Sandberg       |Bruce Willis         |
+Karen McDougal       |Emily Sandberg       |Bruce Willis         |
+Emma Heming          |Emily Sandberg       |Bruce Willis         |
+Brooke Burns         |Emily Sandberg       |Bruce Willis         |
+Tamara Witmer        |Emma Heming          |Bruce Willis         |
+Maria Bravo Rosado   |Emma Heming          |Bruce Willis         |
+Karen McDougal       |Emma Heming          |Bruce Willis         |
+Emily Sandberg       |Emma Heming          |Bruce Willis         |
+Brooke Burns         |Emma Heming          |Bruce Willis         |
+Tamara Witmer        |Karen McDougal       |Bruce Willis         |
+Maria Bravo Rosado   |Karen McDougal       |Bruce Willis         |
+Emma Heming          |Karen McDougal       |Bruce Willis         |
+Emily Sandberg       |Karen McDougal       |Bruce Willis         |
+Brooke Burns         |Karen McDougal       |Bruce Willis         |
+Tamara Witmer        |Maria Bravo Rosado   |Bruce Willis         |
+Karen McDougal       |Maria Bravo Rosado   |Bruce Willis         |
+Emma Heming          |Maria Bravo Rosado   |Bruce Willis         |
+Emily Sandberg       |Maria Bravo Rosado   |Bruce Willis         |
+Brooke Burns         |Maria Bravo Rosado   |Bruce Willis         |
+Maria Bravo Rosado   |Tamara Witmer        |Bruce Willis         |
+Karen McDougal       |Tamara Witmer        |Bruce Willis         |
+Emma Heming          |Tamara Witmer        |Bruce Willis         |
+Emily Sandberg       |Tamara Witmer        |Bruce Willis         |
+Brooke Burns         |Tamara Witmer        |Bruce Willis         |
+Matt Dillon          |Jared Leto           |Cameron Diaz         |
+Justin Timberlake    |Jared Leto           |Cameron Diaz         |
+Matt Dillon          |Justin Timberlake    |Cameron Diaz         |
+Jared Leto           |Justin Timberlake    |Cameron Diaz         |
+Justin Timberlake    |Matt Dillon          |Cameron Diaz         |
+Jared Leto           |Matt Dillon          |Cameron Diaz         |
+Paula Profit         |Kelly Preston        |Charlie Sheen        |
+Kelly Preston        |Paula Profit         |Charlie Sheen        |
+Stuart Townsend      |Stephan Jenkins      |Charlize Theron      |
+Stephan Jenkins      |Stuart Townsend      |Charlize Theron      |
+Adam Goldberg        |Kick Gurry           |Christina Ricci      |
+Billy Crudup         |Hugh Dancy           |Claire Danes         |
+Ben Lee              |Hugh Dancy           |Claire Danes         |
+Henry Kissinger      |Frank Gannon         |Diane Sawyer         |
+Frank Gannon         |Henry Kissinger      |Diane Sawyer         |
+Frédéric Chopin      |Jules Sandeau        |George Sand          |
+Alfred de Musset     |Jules Sandeau        |George Sand          |
+Owen Wilson          |John Cusack          |Gina Gershon         |
+John Cusack          |Owen Wilson          |Gina Gershon         |
+Tom Brady            |Kelly Slater         |Gisele Bündchen      |
+Leonardo DiCaprio    |Kelly Slater         |Gisele Bündchen      |
+Tom Brady            |Leonardo DiCaprio    |Gisele Bündchen      |
+Kelly Slater         |Leonardo DiCaprio    |Gisele Bündchen      |
+Leonardo DiCaprio    |Tom Brady            |Gisele Bündchen      |
+Kelly Slater         |Tom Brady            |Gisele Bündchen      |
+Robert Sean Leonard  |Luke Wilson          |Gwyneth Paltrow      |
+Christopher Heinz    |Luke Wilson          |Gwyneth Paltrow      |
+Brad Pitt            |Luke Wilson          |Gwyneth Paltrow      |
+Ben Affleck          |Luke Wilson          |Gwyneth Paltrow      |
+Luke Wilson          |Robert Sean Leonard  |Gwyneth Paltrow      |
+Christopher Heinz    |Robert Sean Leonard  |Gwyneth Paltrow      |
+Brad Pitt            |Robert Sean Leonard  |Gwyneth Paltrow      |
+Ben Affleck          |Robert Sean Leonard  |Gwyneth Paltrow      |
+Stephen Colletti     |Milo Ventimiglia     |Hayden Panettiere    |
+Milo Ventimiglia     |Stephen Colletti     |Hayden Panettiere    |
+Angie Everhart       |Robin Givens         |Howard Stern         |
+Reese Witherspoon    |Jenny Lewis          |Jake Gyllenhaal      |
+Kirsten Dunst        |Jenny Lewis          |Jake Gyllenhaal      |
+Reese Witherspoon    |Kirsten Dunst        |Jake Gyllenhaal      |
+Jenny Lewis          |Kirsten Dunst        |Jake Gyllenhaal      |
+Kirsten Dunst        |Reese Witherspoon    |Jake Gyllenhaal      |
+Jenny Lewis          |Reese Witherspoon    |Jake Gyllenhaal      |
+Vince Vaughn         |John Mayer           |Jennifer Aniston     |
+Tate Donovan         |John Mayer           |Jennifer Aniston     |
+Paul Sculfor         |John Mayer           |Jennifer Aniston     |
+Orlando Bloom        |John Mayer           |Jennifer Aniston     |
+Adam Duritz          |John Mayer           |Jennifer Aniston     |
+Vince Vaughn         |Orlando Bloom        |Jennifer Aniston     |
+Tate Donovan         |Orlando Bloom        |Jennifer Aniston     |
+Paul Sculfor         |Orlando Bloom        |Jennifer Aniston     |
+John Mayer           |Orlando Bloom        |Jennifer Aniston     |
+Adam Duritz          |Orlando Bloom        |Jennifer Aniston     |
+Vince Vaughn         |Paul Sculfor         |Jennifer Aniston     |
+Tate Donovan         |Paul Sculfor         |Jennifer Aniston     |
+Orlando Bloom        |Paul Sculfor         |Jennifer Aniston     |
+John Mayer           |Paul Sculfor         |Jennifer Aniston     |
+Adam Duritz          |Paul Sculfor         |Jennifer Aniston     |
+Vince Vaughn         |Tate Donovan         |Jennifer Aniston     |
+Paul Sculfor         |Tate Donovan         |Jennifer Aniston     |
+Orlando Bloom        |Tate Donovan         |Jennifer Aniston     |
+John Mayer           |Tate Donovan         |Jennifer Aniston     |
+Adam Duritz          |Tate Donovan         |Jennifer Aniston     |
+Tate Donovan         |Vince Vaughn         |Jennifer Aniston     |
+Paul Sculfor         |Vince Vaughn         |Jennifer Aniston     |
+Orlando Bloom        |Vince Vaughn         |Jennifer Aniston     |
+John Mayer           |Vince Vaughn         |Jennifer Aniston     |
+Adam Duritz          |Vince Vaughn         |Jennifer Aniston     |
+Ben Affleck          |Sean Combs           |Jennifer Lopez       |
+Wilmer Valderrama    |John Mayer           |Jennifer Love Hewitt |
+Rich Cronin          |John Mayer           |Jennifer Love Hewitt |
+Wilmer Valderrama    |Rich Cronin          |Jennifer Love Hewitt |
+John Mayer           |Rich Cronin          |Jennifer Love Hewitt |
+Rich Cronin          |Wilmer Valderrama    |Jennifer Love Hewitt |
+John Mayer           |Wilmer Valderrama    |Jennifer Love Hewitt |
+Marilyn Monroe       |Judith Exner         |John F. Kennedy      |
+Judith Exner         |Marilyn Monroe       |John F. Kennedy      |
+Jessica Simpson      |Minka Kelly          |John Mayer           |
+Jennifer Love Hewitt |Minka Kelly          |John Mayer           |
+Jennifer Aniston     |Minka Kelly          |John Mayer           |
+Winona Ryder         |Kate Moss            |Johnny Depp          |
+Sherilyn Fenn        |Kate Moss            |Johnny Depp          |
+Jennifer Grey        |Kate Moss            |Johnny Depp          |
+Winona Ryder         |Sherilyn Fenn        |Johnny Depp          |
+Kate Moss            |Sherilyn Fenn        |Johnny Depp          |
+Jennifer Grey        |Sherilyn Fenn        |Johnny Depp          |
+Sherilyn Fenn        |Winona Ryder         |Johnny Depp          |
+Kate Moss            |Winona Ryder         |Johnny Depp          |
+Jennifer Grey        |Winona Ryder         |Johnny Depp          |
+John F. Kennedy      |Sam Giancana         |Judith Exner         |
+Frank Sinatra        |Sam Giancana         |Judith Exner         |
+Owen Wilson          |Lance Armstrong      |Kate Hudson          |
+Lance Armstrong      |Owen Wilson          |Kate Hudson          |
+Peter Doherty        |Mario Sorrenti       |Kate Moss            |
+Johnny Depp          |Mario Sorrenti       |Kate Moss            |
+Jefferson Hack       |Mario Sorrenti       |Kate Moss            |
+Jamie Hince          |Mario Sorrenti       |Kate Moss            |
+Billy Zane           |Mario Sorrenti       |Kate Moss            |
+Mario Sorrenti       |Peter Doherty        |Kate Moss            |
+Johnny Depp          |Peter Doherty        |Kate Moss            |
+Jefferson Hack       |Peter Doherty        |Kate Moss            |
+Jamie Hince          |Peter Doherty        |Kate Moss            |
+Billy Zane           |Peter Doherty        |Kate Moss            |
+Jimmy Reyes          |Tom Werner           |Katie Couric         |
+Chris Botti          |Tom Werner           |Katie Couric         |
+Carroll Lesesne      |Tom Werner           |Katie Couric         |
+Jamie Dornan         |Rupert Friend        |Keira Knightley      |
+Del Synnott          |Rupert Friend        |Keira Knightley      |
+Reggie Bush          |Ray J                |Kim Kardashian       |
+Ray J                |Reggie Bush          |Kim Kardashian       |
+Kate Hudson          |Sheryl Crow          |Lance Armstrong      |
+Wilmer Valderrama    |Samantha Ronson      |Lindsay Lohan        |
+Aaron Carter         |Samantha Ronson      |Lindsay Lohan        |
+Samantha Ronson      |Wilmer Valderrama    |Lindsay Lohan        |
+Aaron Carter         |Wilmer Valderrama    |Lindsay Lohan        |
+Warren Beatty        |Mark Kamins          |Madonna              |
+Vanilla Ice          |Mark Kamins          |Madonna              |
+Tony Ward            |Mark Kamins          |Madonna              |
+John Benitez         |Mark Kamins          |Madonna              |
+Jean-Michel Basquiat |Mark Kamins          |Madonna              |
+Dennis Rodman        |Mark Kamins          |Madonna              |
+Carlos Leon          |Mark Kamins          |Madonna              |
+Warren Beatty        |Tony Ward            |Madonna              |
+Vanilla Ice          |Tony Ward            |Madonna              |
+Mark Kamins          |Tony Ward            |Madonna              |
+John Benitez         |Tony Ward            |Madonna              |
+Jean-Michel Basquiat |Tony Ward            |Madonna              |
+Dennis Rodman        |Tony Ward            |Madonna              |
+Carlos Leon          |Tony Ward            |Madonna              |
+Warren Beatty        |Vanilla Ice          |Madonna              |
+Tony Ward            |Vanilla Ice          |Madonna              |
+Mark Kamins          |Vanilla Ice          |Madonna              |
+John Benitez         |Vanilla Ice          |Madonna              |
+Jean-Michel Basquiat |Vanilla Ice          |Madonna              |
+Dennis Rodman        |Vanilla Ice          |Madonna              |
+Carlos Leon          |Vanilla Ice          |Madonna              |
+Vanilla Ice          |Warren Beatty        |Madonna              |
+Tony Ward            |Warren Beatty        |Madonna              |
+Mark Kamins          |Warren Beatty        |Madonna              |
+John Benitez         |Warren Beatty        |Madonna              |
+Jean-Michel Basquiat |Warren Beatty        |Madonna              |
+Dennis Rodman        |Warren Beatty        |Madonna              |
+Carlos Leon          |Warren Beatty        |Madonna              |
+Zach Braff           |Ryan Adams           |Mandy Moore          |
+Wilmer Valderrama    |Ryan Adams           |Mandy Moore          |
+Greg Laswell         |Ryan Adams           |Mandy Moore          |
+Billy Crawford       |Ryan Adams           |Mandy Moore          |
+Andy Roddick         |Ryan Adams           |Mandy Moore          |
+Adam Goldstein       |Ryan Adams           |Mandy Moore          |
+Zach Braff           |Wilmer Valderrama    |Mandy Moore          |
+Ryan Adams           |Wilmer Valderrama    |Mandy Moore          |
+Greg Laswell         |Wilmer Valderrama    |Mandy Moore          |
+Billy Crawford       |Wilmer Valderrama    |Mandy Moore          |
+Andy Roddick         |Wilmer Valderrama    |Mandy Moore          |
+Adam Goldstein       |Wilmer Valderrama    |Mandy Moore          |
+Wilmer Valderrama    |Zach Braff           |Mandy Moore          |
+Ryan Adams           |Zach Braff           |Mandy Moore          |
+Greg Laswell         |Zach Braff           |Mandy Moore          |
+Billy Crawford       |Zach Braff           |Mandy Moore          |
+Andy Roddick         |Zach Braff           |Mandy Moore          |
+Adam Goldstein       |Zach Braff           |Mandy Moore          |
+Winona Ryder         |Minnie Driver        |Matt Damon           |
+Odessa Whitmire      |Minnie Driver        |Matt Damon           |
+Winona Ryder         |Odessa Whitmire      |Matt Damon           |
+Minnie Driver        |Odessa Whitmire      |Matt Damon           |
+Odessa Whitmire      |Winona Ryder         |Matt Damon           |
+Minnie Driver        |Winona Ryder         |Matt Damon           |
+Elizabeth Daily      |Uma Thurman          |Nicolas Cage         |
+Lenny Kravitz        |Robbie Williams      |Nicole Kidman        |
+Mandy Moore          |Winona Ryder         |Ryan Adams           |
+        \end{verbatim}
+        
+        
+        \subsubsection*{For each pair of enemies give the number of movies each has starred in:}
+        \begin{verbatim}
+SELECT e.celeb1, e.celeb2, cmc1.movieCount, cmc2.movieCount
+    FROM Enemies e
+    JOIN vCelebMovieCounts cmc1 ON e.celeb1 = cmc1.celeb
+    JOIN vCelebMovieCounts cmc2 ON e.celeb2 = cmc2.celeb;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB1           |CELEB2           |MOVIECOUNT |MOVIECOUNT |
+-----------------|-----------------|-----------|-----------|
+Britney Spears   |Shar Jackson     |4          |2          |
+Sean Combs       |Tupac Shakur     |3          |0          |
+Jay-Z            |Nas              |4          |0          |
+Sean Combs       |Suge Knight      |3          |0          |
+Jennifer Aniston |Angelina Jolie   |17         |32         |
+Shar Jackson     |Britney Spears   |2          |4          |
+Lauren Conrad    |Spencer Pratt    |2          |0          |
+Jay-Z            |Cam'ron          |4          |0          |
+Lauren Conrad    |Heidi Montag     |2          |0          |
+Angelina Jolie   |Jennifer Aniston |32         |17         |
+        \end{verbatim}
+        
+        
+        \subsubsection*{Find how many albums each celebrity has released. Order the results by the number
+of albums (in descending order). Show only the celebrities who have released at least
+2 albums:}
+        \begin{verbatim}
+SELECT celeb, albumCount
+    FROM vCelebAlbumCounts
+    WHERE albumCount >= 2
+    ORDER BY albumCount DESC;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB                |ALBUMCOUNT |
+---------------------|-----------|
+Frédéric Chopin      |95         |
+Elton John           |94         |
+Frank Sinatra        |89         |
+Cher                 |67         |
+Beck                 |59         |
+Luis Miguel          |52         |
+Robbie Williams      |50         |
+Sheryl Crow          |45         |
+Britney Spears       |42         |
+Carly Simon          |38         |
+Madonna              |37         |
+Lenny Kravitz        |35         |
+Mariah Carey         |22         |
+Ryan Adams           |22         |
+Chris Isaak          |22         |
+John Mayer           |21         |
+k.d. lang            |21         |
+Common               |21         |
+Jay-Z                |20         |
+Beyoncé              |19         |
+Sean Combs           |17         |
+Aaron Carter         |16         |
+Marilyn Monroe       |16         |
+Ben Lee              |15         |
+Vanilla Ice          |15         |
+Jessica Simpson      |14         |
+Vanessa L. Williams  |14         |
+Devendra Banhart     |14         |
+Paul Westerberg      |13         |
+Bret Michaels        |12         |
+Ashlee Simpson       |12         |
+Pete Yorn            |11         |
+Chris Botti          |11         |
+Jennifer Lopez       |10         |
+Justin Timberlake    |10         |
+Miley Cyrus          |9          |
+Mandy Moore          |8          |
+Sinitta              |7          |
+Keith Urban          |7          |
+Ryan Cabrera         |6          |
+Alyssa Milano        |6          |
+Billy Crawford       |6          |
+Bruce Willis         |6          |
+Conor Oberst         |5          |
+Evan Dando           |5          |
+Paris Hilton         |5          |
+Vanessa Anne Hudgens |4          |
+Ray J                |4          |
+Carrie Underwood     |4          |
+Jennifer Love Hewitt |4          |
+Rhett Miller         |3          |
+Minnie Driver        |3          |
+Lindsay Lohan        |3          |
+Gwen Stefani         |2          |
+Robert Downey Jr.    |2          |
+Kevin Federline      |2          |
+Dave Pirner          |2          |
+Woody Allen          |2          |
+Jerry Seinfeld       |2          |
+        \end{verbatim}
+        
+        
+        \subsubsection*{Find those celebrity that have starred in some movie and have released some album:}
+        \begin{verbatim}
+SELECT celeb
+    FROM vCelebAlbumCounts
+    NATURAL JOIN vCelebMovieCounts
+    WHERE movieCount > 0
+    AND albumCount > 0;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB                |
+---------------------|
+Gwen Stefani         |
+Nicole Kidman        |
+Ray J                |
+Minnie Driver        |
+Madonna              |
+Woody Allen          |
+Sheryl Crow          |
+Lindsay Lohan        |
+Vanessa L. Williams  |
+Common               |
+Luis Miguel          |
+Cher                 |
+Jennifer Love Hewitt |
+Vanessa Anne Hudgens |
+Mandy Moore          |
+Frank Sinatra        |
+Britney Spears       |
+Marilyn Monroe       |
+Bret Michaels        |
+Billy Crawford       |
+Sean Combs           |
+Vanilla Ice          |
+Gina Gershon         |
+Beyoncé              |
+Aaron Carter         |
+Robert Downey Jr.    |
+Isabelle Adjani      |
+Chris Isaak          |
+Jennifer Lopez       |
+Elton John           |
+Ben Lee              |
+k.d. lang            |
+Mariah Carey         |
+Jessica Simpson      |
+Bruce Willis         |
+Jay-Z                |
+Justin Timberlake    |
+Jerry Seinfeld       |
+Heidi Klum           |
+Ashlee Simpson       |
+Paris Hilton         |
+Alyssa Milano        |
+Miley Cyrus          |
+Jenny Lewis          |
+        \end{verbatim}
+        
+        
+        
+        \subsubsection*{For each celebrity that has both starred in some movie and released some album give
+the numbers of movies and albums he/she has starred in and released, respectively:}
+        \begin{verbatim}
+SELECT celeb, movieCount number_of_movies, albumCount number_of_albums
+    FROM vCelebAlbumCounts
+    NATURAL JOIN vCelebMovieCounts
+    WHERE movieCount > 0
+    AND albumCount > 0;\end{verbatim}
+    
+        \begin{verbatim}
+CELEB                |NUMBER_OF_MOVIES |NUMBER_OF_ALBUMS |
+---------------------|-----------------|-----------------|
+Gwen Stefani         |1                |2                |
+Nicole Kidman        |49               |1                |
+Ray J                |2                |4                |
+Minnie Driver        |22               |3                |
+Madonna              |20               |37               |
+Woody Allen          |36               |2                |
+Sheryl Crow          |1                |45               |
+Lindsay Lohan        |17               |3                |
+Vanessa L. Williams  |15               |14               |
+Common               |3                |21               |
+Luis Miguel          |1                |52               |
+Cher                 |16               |67               |
+Jennifer Love Hewitt |27               |4                |
+Vanessa Anne Hudgens |6                |4                |
+Mandy Moore          |15               |8                |
+Frank Sinatra        |39               |89               |
+Britney Spears       |4                |42               |
+Marilyn Monroe       |30               |16               |
+Bret Michaels        |1                |12               |
+Billy Crawford       |1                |6                |
+Sean Combs           |3                |17               |
+Vanilla Ice          |2                |15               |
+Gina Gershon         |24               |1                |
+Beyoncé              |7                |19               |
+Aaron Carter         |2                |16               |
+Robert Downey Jr.    |46               |2                |
+Isabelle Adjani      |18               |1                |
+Chris Isaak          |3                |22               |
+Jennifer Lopez       |24               |10               |
+Elton John           |2                |94               |
+Ben Lee              |1                |15               |
+k.d. lang            |1                |21               |
+Mariah Carey         |11               |22               |
+Jessica Simpson      |6                |14               |
+Bruce Willis         |54               |6                |
+Jay-Z                |4                |20               |
+Justin Timberlake    |10               |10               |
+Jerry Seinfeld       |6                |2                |
+Heidi Klum           |5                |1                |
+Ashlee Simpson       |1                |12               |
+Paris Hilton         |10               |5                |
+Alyssa Milano        |29               |6                |
+Miley Cyrus          |5                |9                |
+Jenny Lewis          |5                |1                |
+        \end{verbatim}
+        
+        \subsubsection*{Find the earliest and the latest relationship (w.r.t the start date) recorded in this
+database:}
+        \begin{verbatim}
+SELECT *
+    FROM Relationships
+    WHERE started IN ((SELECT MAX(started) FROM Relationships),
+                      (SELECT MIN(started) FROM Relationships));\end{verbatim}
+    
+        \begin{verbatim}
+CELEB1              |CELEB2              |STARTED |ENDED   |
+--------------------|--------------------|--------|--------|
+Hadrian             |Antinous            |124     |130     |
+Mary-Louise Parker  |Jeffrey Dean Morgan |2006    |2008-03 |
+Antinous            |Hadrian             |124     |130     |
+Jeffrey Dean Morgan |Mary-Louise Parker  |2006    |2008-03 |
+        \end{verbatim}
+        
+        
+\end{document}
